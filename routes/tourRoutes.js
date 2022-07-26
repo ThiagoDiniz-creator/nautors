@@ -5,10 +5,14 @@ const tourController = require(path.join(
 ));
 const router = require('express').Router();
 
+// O router define um middleware param, que será chamado apenas quando o parâmetro id
+// for enviado pela rota.
+router.param('id', tourController.checkId);
+
 router
   .route('/')
   .get(tourController.getAllTours)
-  .post(tourController.createTour);
+  .post(tourController.checkTourData, tourController.createTour);
 
 router
   .route('/:id')
