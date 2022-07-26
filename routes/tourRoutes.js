@@ -1,8 +1,11 @@
 const path = require('path');
-const tourController = require(path.join(
-  __dirname,
-  '../controllers/tourController'
-));
+
+// PATHS
+const tourControllerPath = String.toString(
+  path.join(__dirname, '../controllers/tourController')
+);
+
+const tourController = require(tourControllerPath);
 const router = require('express').Router();
 
 // O router define um middleware param, que será chamado apenas quando o parâmetro id

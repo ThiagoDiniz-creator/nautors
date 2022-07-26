@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Paths
-const toursPath = path.join(`${__dirname}/../dev-data/data/tours-simple.json`);
+const toursPath = path.join(__dirname, '/../dev-data/data/tours-simple.json');
 
 // JSON
 const toursData = JSON.parse(fs.readFileSync(toursPath));
@@ -12,8 +12,9 @@ const toursData = JSON.parse(fs.readFileSync(toursPath));
 exports.checkId = (req, res, next, val) => {
   // Temos as três variáveis comuns de um middleware (req, res, next) e uma especial
   // , o quarto argumento é o valor do parâmetro que estamos buscando (nesse caso o id).
-  if (val < -1 || val > toursData.length)
+  if (val < -1 || val > toursData.length) {
     return res.status(404).json({ status: 'fail', message: 'Invalid ID!' });
+  }
   // Nesse caso estamos verificando se o ID é válido, se ele não for encerraremos o ciclo
   // aqui nesse middleware.
   next();
@@ -49,12 +50,10 @@ exports.checkTourData = (req, res, next) => {
   const { name, price } = req.body;
 
   if (!name || !price || Number(price) < 0 || !Number(price)) {
-    return res
-      .status(500)
-      .json({
-        status: 'error',
-        message: 'Invalid data! You need both a price and a name!',
-      });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Invalid data! You need both a price and a name!',
+    });
   }
   next();
 };
@@ -78,15 +77,15 @@ exports.createTour = (req, res) => {
 exports.updateTour = (req, res) => {
   const id = Number(req.params.id);
 
-  if (id > -1 && id < toursData.length)
+  if (id > -1 && id < toursData.length) {
     res.status(200).json({ status: 'success', tours: '<Tour data here!>' });
-  else res.status(404).json({ status: 'fail', message: 'Invalid ID!' });
+  } else res.status(404).json({ status: 'fail', message: 'Invalid ID!' });
 };
 
 exports.deleteTour = (req, res) => {
   const id = Number(req.params.id);
 
-  if (id > -1 && id < toursData.length)
+  if (id > -1 && id < toursData.length) {
     res.status(204).json({ status: 'success', tours: null });
-  else res.status(404).json({ status: 'fail', message: 'Invalid ID!' });
+  } else res.status(404).json({ status: 'fail', message: 'Invalid ID!' });
 };
