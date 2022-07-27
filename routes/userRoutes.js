@@ -1,5 +1,6 @@
 // Módulos
 const path = require('path');
+
 const userController = require(path.join(
   __dirname,
   '../controllers/userController'
@@ -18,7 +19,6 @@ router
   .get(userController.getOneUser)
   .patch(userController.updateUser)
   .delete(userController.deleteUser);
-
 
 // Exportando o router, para que ele seja aplicado como middleware
 module.exports = router;

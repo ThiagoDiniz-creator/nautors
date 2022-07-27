@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const path = require('path');
 
 const tourRouter = require('./routes/tourRoutes');
-const userRouter = require('./routes/userRouters');
+const userRouter = require('./routes/userRoutes');
 
 // CREATING THE SERVER
 const app = express();
