@@ -1,10 +1,13 @@
 // Módulos
 const path = require('path');
 
-const userController = require(path.join(
+// Paths
+const userControllerPath = path.join(
   __dirname,
   '../controllers/userController'
-));
+);
+
+const userController = require(userControllerPath);
 
 // Criando um novo router, que permitirá configurar as rotas do user. Ele é como o app.
 const router = require('express').Router();
