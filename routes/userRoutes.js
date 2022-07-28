@@ -1,18 +1,17 @@
-// Módulos
+// MODULES
 const path = require('path');
 
-// Paths
+// PATHS
 const userControllerPath = path.join(
   __dirname,
   '../controllers/userController'
 );
-
 const userController = require(userControllerPath);
 
 // Criando um novo router, que permitirá configurar as rotas do user. Ele é como o app.
 const router = require('express').Router();
 
-// Definição das rotas
+// ROUTES
 router
   .route('/')
   .get(userController.getAllUsers)
@@ -24,4 +23,5 @@ router
   .delete(userController.deleteUser);
 
 // Exportando o router, para que ele seja aplicado como middleware
+// EXPORTING
 module.exports = router;

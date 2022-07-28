@@ -1,3 +1,4 @@
+// PATH MODULE
 const path = require('path');
 
 // PATHS
@@ -6,13 +7,11 @@ const tourControllerPath = path.join(
   '../controllers/tourController'
 );
 
+// MODULES
 const tourController = require(tourControllerPath);
 const router = require('express').Router();
 
-// O router define um middleware param, que será chamado apenas quando o parâmetro id
-// for enviado pela rota.
-// router.param('id', tourController.checkId);
-
+// ROUTES
 router
   .route('/')
   .get(tourController.getAllTours)
@@ -24,4 +23,5 @@ router
   .patch(tourController.updateTour)
   .delete(tourController.deleteTour);
 
+// EXPORTING
 module.exports = router;

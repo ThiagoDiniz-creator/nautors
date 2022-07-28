@@ -1,9 +1,16 @@
-// Modules
+// MODULES
 const Tour = require('../models/tourModel');
 
+// EXPORTING
 exports.getAllTours = async (req, res) => {
   try {
-    const allTours = await Tour.find();
+    // find() select all the elements from the document. If it had a condition, it would only return the documents that
+    // were approved.
+    const queryValues = req.query;
+
+    const allToursQuery = Tour.find(queryValues);
+
+    const allTours = await allToursQuery;
 
     res.status(200).json({
       status: 'success',
@@ -21,7 +28,7 @@ exports.getAllTours = async (req, res) => {
 
 exports.getOneTour = async (req, res) => {
   try {
-    const { id } = req.params.id;
+    const { id } = req.params;
     const tour = await Tour.findById(id);
 
     if (!tour) throw new Error("Couldn't find the tour!");
@@ -38,18 +45,6 @@ exports.getOneTour = async (req, res) => {
   }
 };
 
-exports.checkTourData = (req, res, next) => {
-  const { name, price } = req.body;
-
-  if (!name || !price || Number(price) < 0 || !Number(price)) {
-    return res.status(500).json({
-      status: 'error',
-      message: 'Invalid data! You need both a price and a name!',
-    });
-  }
-  next();
-};
-
 exports.createTour = async (req, res) => {
   try {
     const newTour = await Tour.create(req.body);
@@ -60,16 +55,44 @@ exports.createTour = async (req, res) => {
   }
 };
 
-exports.updateTour = (req, res) => {
-  const id = Number(req.params.id);
+exports.updateTour = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tour = await Tour.findByIdAndUpdate(
+      { _id: id },
+      { ...req.body },
+      { returnDocument: 'after', runValidators: true }
+    );
 
-  // if (id > -1 && id < toursData.length) {
-  //   res.status(200).json({ status: 'success', tours: '<Tour data here!>' });
-  // } else res.status(404).json({ status: 'fail', message: 'Invalid ID!' });
+    res.status(200).json({
+      status: 'success',
+      data: tour,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'fail',
+      message: "Couldn't execute the operation! Try again with valid data",
+    });
+  }
 };
 
-exports.deleteTour = (req, res) => {
-  const id = Number(req.params.id);
+exports.deleteTour = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tour = await Tour.findByIdAndDelete(id);
+
+    if (!tour) throw new Error();
+
+    res.status(204).json({
+      status: 'success',
+      data: tour,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'fail',
+      message: 'Could not delete the desired ID! Try again with other values!',
+    });
+  }
 
   // if (id > -1 && id < toursData.length) {
   //   res.status(204).json({ status: 'success', tours: null });
