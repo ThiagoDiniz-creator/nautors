@@ -4,12 +4,18 @@ const Tour = require('../models/tourModel');
 // EXPORTING
 exports.getAllTours = async (req, res) => {
   try {
-    // find() select all the elements from the document. If it had a condition, it would only return the documents that
-    // were approved.
-    const queryValues = req.query;
+    // Advanced filtering
+    const queryString = JSON.stringify(req.query);
 
-    const allToursQuery = Tour.find(queryValues);
+    const parsedQueryString = queryString.replace(
+      /\bgte|gt|lt|lte\b/g,
+      (match) => `$${match}`
+    );
+    const parsedQueryObj = JSON.parse(parsedQueryString);
 
+    // Creating the query
+    const allToursQuery = Tour.find(parsedQueryObj);
+    // Invoking the query
     const allTours = await allToursQuery;
 
     res.status(200).json({
@@ -21,7 +27,7 @@ exports.getAllTours = async (req, res) => {
   } catch (err) {
     res.status(404).json({
       status: 'fail',
-      message: "Couldn't get all tours!",
+      message: err,
     });
   }
 };
