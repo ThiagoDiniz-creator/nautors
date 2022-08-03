@@ -1,22 +1,26 @@
 // MODULES
 const Tour = require('../models/tourModel');
+const APIFeatures = require('../utils/apiFeatures');
+
+// MIDDLEWARE
+exports.bestFiveAndCheapestTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.page = '1';
+  req.query.sort = '-ratingAverage,price';
+  req.query.fields = 'name,price,ratingAverage,summary,difficulty';
+
+  next();
+};
 
 // EXPORTING
 exports.getAllTours = async (req, res) => {
   try {
-    // Advanced filtering
-    const queryString = JSON.stringify(req.query);
-
-    const parsedQueryString = queryString.replace(
-      /\bgte|gt|lt|lte\b/g,
-      (match) => `$${match}`
-    );
-    const parsedQueryObj = JSON.parse(parsedQueryString);
-
     // Creating the query
-    const allToursQuery = Tour.find(parsedQueryObj);
+    const featuresObj = new APIFeatures(Tour.find(), req.query);
+    featuresObj.filter().sort().fields().paginate();
+
     // Invoking the query
-    const allTours = await allToursQuery;
+    const allTours = await featuresObj.query;
 
     res.status(200).json({
       status: 'success',

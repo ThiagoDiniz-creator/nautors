@@ -13,6 +13,10 @@ const router = require('express').Router();
 
 // ROUTES
 router
+  .route('/top-5-cheap')
+  .get(tourController.bestFiveAndCheapestTours, tourController.getAllTours);
+
+router
   .route('/')
   .get(tourController.getAllTours)
   .post(tourController.createTour);
