@@ -112,7 +112,6 @@ exports.deleteTour = async (req, res) => {
 exports.getTourStats = async (req, res) => {
   try {
     const stats = await Tour.aggregate([
-      // Esse é o estágio de preparação
       {
         $match: {
           ratingAverage: {
