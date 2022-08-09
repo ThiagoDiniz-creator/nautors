@@ -29,8 +29,6 @@ app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
 app.all('*', (req, res, next) => {
-  // Quando o next() recebe um parâmetro, o express já irá entender isso como um erro. Que será levado para
-  // o middleware de error handling.
   next(
     new AppError(
       `The route ${req.originalUrl} was not found on this server!`,

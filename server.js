@@ -12,10 +12,26 @@ mongoose.connect(DB, {
   useNewUrlParser: true,
 });
 
+// UNCAUGHT EXPECTION HANDLER
+process.on('uncaughtException', (err) => {
+  console.log('An unhandled expection has occurred!');
+  console.log(`${err.name}, ${err.message}`);
+  process.exit(1);
+});
+
 const app = require('./app');
 
 const port = process.env.PORT || 3000;
 
-app.listen(port, () =>
+const server = app.listen(port, () =>
   console.log(`The server is listening at localhost:${port}`)
 );
+
+// UNHANDLED REJECTION HANDLER
+process.on('unhandledRejection', (err) => {
+  console.log('An unhadled rejection has happened');
+  console.log(`${err.name}, ${err.message}`);
+  server.close(() => {
+    process.exit(1);
+  });
+});
