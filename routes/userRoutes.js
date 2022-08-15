@@ -6,12 +6,20 @@ const userControllerPath = path.join(
   __dirname,
   '../controllers/userController'
 );
+const authControllerPath = path.join(
+  __dirname,
+  '../controllers/authController'
+);
+
 const userController = require(userControllerPath);
+const authController = require(authControllerPath);
 
 // Criando um novo router, que permitirá configurar as rotas do user. Ele é como o app.
 const router = require('express').Router();
 
 // ROUTES
+router.post('/signup', authController.signUp);
+router.post('/signin', authController.login);
 router
   .route('/')
   .get(userController.getAllUsers)

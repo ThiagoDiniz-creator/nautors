@@ -1,15 +1,8 @@
-// PATH MODULE
-const path = require('path');
-
-// PATHS
-const tourControllerPath = path.join(
-  __dirname,
-  '../controllers/tourController'
-);
-
 // MODULES
-const tourController = require(tourControllerPath);
 const router = require('express').Router();
+
+const tourController = require('../controllers/tourController');
+const authController = require('../controllers/authController');
 
 // ROUTES
 router
@@ -27,7 +20,7 @@ router
 
 router
   .route('/')
-  .get(tourController.getAllTours)
+  .get(authController.protect, tourController.getAllTours)
   .post(tourController.createTour);
 
 // EXPORTING
