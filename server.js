@@ -12,9 +12,9 @@ mongoose.connect(DB, {
   useNewUrlParser: true,
 });
 
-// UNCAUGHT EXPECTION HANDLER
+// UNCAUGHT EXCEPTION HANDLER
 process.on('uncaughtException', (err) => {
-  console.log('An unhandled expection has occurred!');
+  console.log('An unhandled exception has occurred!');
   console.log(`${err.name}, ${err.message}`);
   process.exit(1);
 });
