@@ -51,6 +51,12 @@ const handleValidationError = (err) => {
   );
 };
 
+const handleJsonWebTokenError = () =>
+  new AppError('Please try to login again!', 401);
+
+const handleTokenExpiredError = () =>
+  new AppError('Your token has expired! Login again!', 401);
+
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -62,6 +68,12 @@ module.exports = (err, req, res, next) => {
     if (error.name === 'CastError') error = handleCastError(error);
     if (error.code === 11000) error = handleDuplicateKeyError(error);
     if (error.errors) error = handleValidationError(error);
+    if (error.name === 'JsonWebTokenError') {
+      error = handleJsonWebTokenError(error);
+    }
+    if (error.name === 'TokenExpiredError') {
+      error = handleTokenExpiredError(error);
+    }
 
     sendErrorProd(error, res);
   }

@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema(
         'Please assert that the password and the confirmation password are both equal!',
       ],
     },
+    passwordChangedAt: Date,
   },
   {
     toJSON: {
@@ -62,6 +63,8 @@ userSchema.pre('save', async function (next, value) {
   // Setting a field to undefined makes the field not persist in the Database anymore.
   // briefly, the passwordConfirm field will be deleted.
   this.passwordConfirm = undefined;
+
+  next();
 });
 
 // METHODS
@@ -70,6 +73,15 @@ userSchema.methods.correctPassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (timestamp) {
+  if (this.passwordChangedAt) {
+    const changedMilli = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+    console.log(changedMilli, timestamp);
+    return changedMilli > timestamp;
+  }
+  return false;
 };
 
 // MODEL
