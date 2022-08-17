@@ -9,14 +9,20 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, 'Please provide a name!'],
+      // Trimming means the space before and after the
+      // string will be removed.
       trim: true,
     },
     email: {
       type: String,
       required: [true, 'Please provide a valid email!'],
+      // Unique is a MongoDB specification, that will make
+      // this field an index.
       unique: true,
       trim: true,
       validate: [
+        // Using the validatorPackage to check if the email
+        // field was filled with an existent type of email.
         validatorPackage.isEmail,
         'You sent an invalid email! Try again with a valid one!',
       ],
@@ -27,7 +33,12 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Please provide a password!'],
+      // minLength forbids the length of a string to be smaller
+      // than the defined here.
       minLength: [8, 'Please provide a password longer than seven characters!'],
+      // select is a property that defines if in a query this field
+      // will be returned. If it's false, this field will not be
+      // shown in queries, if not selected back in the query.
       select: false,
     },
     passwordConfirm: {
@@ -49,7 +60,9 @@ const userSchema = new mongoose.Schema(
     toJSON: {
       virtuals: true,
     },
-    toObject: { virtuals: true },
+    toObject: {
+      virtuals: true,
+    },
   }
 );
 

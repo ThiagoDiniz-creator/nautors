@@ -1,3 +1,5 @@
+// This class will hold all the code that is common in API get requests
+// such as filtering, sorting, desired fields, and pagination.
 class APIFeatures {
   constructor(query, queryString) {
     this.query = query;
@@ -31,8 +33,11 @@ class APIFeatures {
   sort() {
     // 2) Sorting: Receive the data in the desired order.
     if (this.queryString.sort) {
-      // O sorting no MongoDB é simplificado, podemos usar o {sort: campo}. Para campos adicionais podemos usar o {sort: campo campo2}.
-      // Também podemos acrescer o - na frente do campo, para afirmar que será decrescente, e não crescente como o padrão.
+      // The sorting feature in MongoDB works with the sort property, that will receive the name of the desired
+      // fields: {sort: field1, field2}. We can add how many fields we want, and the sorting order will be
+      // the first field, to the last field. If there is a 'draw' with the field1 sorting, it will sort between
+      // these documents with field2, and so on. To make the sorting decrescent we can add a - before the field:
+      // {sort: -field1, field2}.
       const sortBy = this.queryString.sort.replace(/,/g, ' ');
       this.query.sort(sortBy);
     } else this.query.sort('-createdAt');
@@ -67,4 +72,5 @@ class APIFeatures {
   }
 }
 
+// EXPORTING
 module.exports = APIFeatures;

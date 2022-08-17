@@ -12,7 +12,7 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       maxLength: [
         40,
-        'A tour name must have less or equal than fourty characters!',
+        'A tour name must have less or equal than forty characters!',
       ],
       minLength: [
         10,
@@ -30,6 +30,7 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'A tour must have a price!'],
       validate: {
+        // Only accepting prices that are higher than 0.
         validator(value) {
           if (value > 0) return true;
           return false;
@@ -40,6 +41,7 @@ const tourSchema = new mongoose.Schema(
     priceDiscount: {
       type: Number,
       validate: {
+        // Only accepting discounts that are smaller than the price.
         validator: function (value) {
           return value >= this.price;
         },
@@ -68,6 +70,8 @@ const tourSchema = new mongoose.Schema(
       type: String,
       required: [true, 'A tour must have a difficulty'],
       enum: {
+        // Making it possible to only set the difficulty as easy
+        // medium, or difficult.
         values: ['easy', 'medium', 'difficult'],
         message: 'A tour difficulty is either easy, medium or difficult',
       },
@@ -90,9 +94,12 @@ const tourSchema = new mongoose.Schema(
     },
     createdAt: {
       type: Date,
+      // Setting the default value (when no value is assigned
+      // to this field) to the moment the document was created.
       default: Date.now(),
     },
     startDates: {
+      // Setting the startDate type to an array of dates.
       type: [Date],
     },
     secretTour: {
@@ -101,6 +108,8 @@ const tourSchema = new mongoose.Schema(
     },
   },
   {
+    // Activating the virtual properties to JSON and
+    // objects queries.
     toJSON: {
       virtuals: true,
     },
@@ -117,7 +126,7 @@ tourSchema.virtual('durationWeeks').get(function () {
 });
 
 // MIDDLEWARES
-// Creating the slug for every tour.
+// Creating a slug for every tour.
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
@@ -143,5 +152,5 @@ tourSchema.pre('aggregate', function (next) {
 // MODEL
 const tourModel = new mongoose.model('Tour', tourSchema);
 
-// EXPORT
+// EXPORTING
 module.exports = tourModel;

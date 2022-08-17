@@ -1,4 +1,7 @@
 // MODULES
+// Getting a router, that will allow us to create new routes
+// , use specific middlewares, and essentially create a new
+// sub-application.
 const router = require('express').Router();
 
 const tourController = require('../controllers/tourController');

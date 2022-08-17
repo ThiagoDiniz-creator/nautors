@@ -14,7 +14,7 @@ exports.bestFiveAndCheapestTours = (req, res, next) => {
   next();
 };
 
-// EXPORTING
+// FUNCTIONS
 exports.getAllTours = catchAsync(async (req, res) => {
   // Creating the query
   const featuresObj = new APIFeatures(Tour.find(), req.query);
@@ -25,12 +25,14 @@ exports.getAllTours = catchAsync(async (req, res) => {
 
   res.status(200).json({
     status: 'success',
-    // O results não faz parte do JSend, mas é um padrão adotado no curso de Node
+    // The result property isn't in the JSEND pattern, but is a good
+    // practice.
     results: allTours.length,
     data: allTours,
   });
 });
 
+// Allows the client to find an specific tour.
 exports.getOneTour = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const tour = await Tour.findById(id);
@@ -50,12 +52,15 @@ exports.getOneTour = catchAsync(async (req, res, next) => {
   });
 });
 
+// This function allows the client to create a new tour.
 exports.createTour = catchAsync(async (req, res) => {
   const newTour = await Tour.create(req.body);
 
   res.status(201).json({ status: 'success', data: newTour });
 });
 
+// The updateTour function make it possible to change the current
+// data of any existent tour.
 exports.updateTour = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const tour = await Tour.findByIdAndUpdate(
@@ -79,6 +84,8 @@ exports.updateTour = catchAsync(async (req, res, next) => {
   });
 });
 
+// The deleteTour function allows to remove a document from the
+// Tour collection.
 exports.deleteTour = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const tour = await Tour.findByIdAndDelete(id);
@@ -98,6 +105,8 @@ exports.deleteTour = catchAsync(async (req, res, next) => {
   });
 });
 
+// This function will create a pipeline that returns useful information
+// about the tours, dividing them by their difficulty.
 exports.getTourStats = catchAsync(async (req, res) => {
   const stats = await Tour.aggregate([
     {
@@ -109,7 +118,9 @@ exports.getTourStats = catchAsync(async (req, res) => {
     },
     {
       $group: {
-        // _id é o campo que agrupará os documentos, um ex: Para agruparmos todos os tours por difficuldade ele será: _id: '$difficulty'.
+        // In the group stage the _id will group the documents
+        // so, in this situation will we make all the tours
+        // with the same difficulty be in the same group.
         _id: '$difficulty',
         numRatings: {
           $sum: '$rating',
@@ -144,6 +155,9 @@ exports.getTourStats = catchAsync(async (req, res) => {
   });
 });
 
+// The monthly plan is a aggregation pipeline that makes it
+// possible to see all the tours planned in an specific year
+// and month.
 exports.getMonthlyPlan = catchAsync(async (req, res) => {
   const year = Number(req.params.year);
   const plan = await Tour.aggregate([

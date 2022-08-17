@@ -2,12 +2,13 @@
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 
+// FUNCTIONS
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
 
   res
     .status(200)
-    .json({ status: 'sucess', results: users.length, data: users });
+    .json({ status: 'success', results: users.length, data: users });
 });
 
 exports.getOneUser = catchAsync(async (req, res, next) => {
