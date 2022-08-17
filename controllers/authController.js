@@ -1,6 +1,9 @@
 // MODULES
 const jwt = require('jsonwebtoken');
 const util = require('util');
+const randomString = require('randomstring');
+const bcrypt = require('bcrypt');
+const sendEmail = require('../utils/sendEmail');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
@@ -107,7 +110,48 @@ exports.protect = catchAsync(async (req, res, next) => {
   if (currentUser.changedPasswordAfter(decodedToken.iat)) {
     return next(new AppError('Your token is outdated. Please login again!'));
   }
+  req.user = currentUser;
 
   // If everything was successful, we can simply go to the next middleware.
   next();
 });
+
+// This function allows to restrict the access to certain routes to only the
+// desired roles. Like admin, or lead-guide.
+exports.restrictTo = (...roles) =>
+  catchAsync(async (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError("You don't have permission to perform this action!", 403)
+      );
+    }
+
+    next();
+  });
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  // 1) Get the user's email from POST.
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new AppError('Please provide your email!', 400));
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return next(
+      new AppError(`We will send a reset password token to ${email}.`, 400)
+    );
+  }
+
+  // 2) Create a random token.
+  const token = randomString.generate();
+  user.token = bcrypt.hash(token, 12);
+  await user.save();
+
+  // 3) Email the user random token.
+  sendEmail(email, `Your recovery token is ${token}!`, 'Recovery token');
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {});
