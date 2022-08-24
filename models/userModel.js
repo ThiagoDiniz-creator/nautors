@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 const validatorPackage = require('validator');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 // SCHEMA
 const userSchema = new mongoose.Schema(
@@ -48,7 +49,7 @@ const userSchema = new mongoose.Schema(
     },
     passwordConfirm: {
       type: String,
-      required: [true, 'Please confirm your password!'],
+      required: [true, 'Please provide a password!'],
       minLength: [8, 'Please provide a password longer than seven characters!'],
       validate: [
         // This works only with save. If the context option, and the run validators options are not
@@ -60,6 +61,8 @@ const userSchema = new mongoose.Schema(
       ],
     },
     passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
   {
     toJSON: {
@@ -93,6 +96,7 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
+// Encrypting the user password
 userSchema.methods.changedPasswordAfter = function (timestamp) {
   if (this.passwordChangedAt) {
     const changedMilliseconds = parseInt(
@@ -102,6 +106,19 @@ userSchema.methods.changedPasswordAfter = function (timestamp) {
     return changedMilliseconds > timestamp;
   }
   return false;
+};
+
+// Creating a reset password token
+userSchema.methods.createPasswordResetToken = async function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+  this.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
+  console.log(this.passwordResetExpires);
+
+  return resetToken;
 };
 
 // MODEL

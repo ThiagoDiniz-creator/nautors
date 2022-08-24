@@ -1,9 +1,8 @@
 // MODULES
 const jwt = require('jsonwebtoken');
 const util = require('util');
-const randomString = require('randomstring');
-const bcrypt = require('bcrypt');
-const sendEmail = require('../utils/sendEmail');
+const crypto = require('crypto');
+const sendEmail = require('../utils/email');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
@@ -133,25 +132,80 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get the user's email from POST.
   const { email } = req.body;
 
-  if (!email) {
-    return next(new AppError('Please provide your email!', 400));
-  }
-
   const user = await User.findOne({ email });
 
   if (!user) {
     return next(
-      new AppError(`We will send a reset password token to ${email}.`, 400)
+      new AppError(
+        "This email isn't currently in our database. You could sign-up, instead of resetting your password.",
+        401
+      )
     );
   }
 
   // 2) Create a random token.
-  const token = randomString.generate();
-  user.token = bcrypt.hash(token, 12);
-  await user.save();
+  const token = await user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
 
   // 3) Email the user random token.
-  sendEmail(email, `Your recovery token is ${token}!`, 'Recovery token');
+  const resetURL = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/users/resetPassword/${token}`;
+  const message = `Forgot your password? Submit a Patch request with your new password and passwordConfirm to: ${resetURL}. If you didn't forgot your email, please ignore this password!`;
+
+  try {
+    await sendEmail({
+      message,
+      email: user.email,
+      subject: 'Your password reset token (valid for 10 min)',
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.save({ validateBeforeSave: false });
+    return next(
+      new AppError(
+        'An error has occurred when trying to send the reset password email. Please try again later!',
+        500
+      )
+    );
+  }
+
+  res.status(200).json({ status: 'success', message: 'Token sent to email!' });
 });
 
-exports.resetPassword = catchAsync(async (req, res, next) => {});
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // 1) Get the user based on the token
+  const { token } = req.params;
+  const { password, passwordConfirm } = req.body;
+  const encryptedToken = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+  const user = await User.findOne({
+    passwordResetToken: encryptedToken,
+    passwordResetExpires: {
+      $gt: Date.now(),
+    },
+  });
+
+  // 2) If token has not expired, and there is a user, set the new password
+  if (!user) {
+    return next(new AppError("This token doesn't exists!", 404));
+  }
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+
+  // 3) Update changedPasswordAt property for the user
+  await user.save();
+
+  // 4) Log the user in, send the JWT to the client
+  const JWTtoken = signToken({ id: user._id });
+  res.status(200).json({
+    status: 'success',
+    token: JWTtoken,
+    message: 'Your password was successfully redefined!',
+  });
+});
