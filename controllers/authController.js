@@ -14,6 +14,14 @@ const signToken = (payload) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
+const createAndSendToken = async (user, code, res) => {
+  const token = await signToken({ id: user._id });
+  res.status(code).json({
+    status: 'success',
+    token,
+  });
+};
+
 // The promisified version of the jwt.verify() function.
 const verifyToken = util.promisify(jwt.verify);
 
@@ -29,9 +37,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
   });
   newUser.password = undefined;
 
-  const token = signToken({ id: newUser._id });
-
-  res.status(201).json({ status: 'success', token, data: { user: newUser } });
+  createAndSendToken(newUser, 201, res);
 });
 
 // the login function allows users that already have accounts to get
@@ -76,7 +82,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   // 1) The first step is to verify if the user sent us a authorization header, that
   // follows the JWT pattern: Authorization: Bearer [token].
   if (
-    !req.headers.authorization &&
+    !req.headers.authorization ||
     !req.headers.authorization.startsWith('Bearer ')
   ) {
     return next(
@@ -202,10 +208,31 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log the user in, send the JWT to the client
-  const JWTtoken = signToken({ id: user._id });
-  res.status(200).json({
-    status: 'success',
-    token: JWTtoken,
-    message: 'Your password was successfully redefined!',
-  });
+  createAndSendToken(user, 200, res);
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1) Confirm if the user sent both the password, the newPassword and newPasswordConfirm.
+  const user = await User.findById(req.user.id).select('+password');
+  const { passwordCurrent, password, passwordConfirm } = req.body;
+  if (!(passwordCurrent && password && passwordConfirm)) {
+    return next(
+      new AppError(
+        'Please, send  the password , the new password and the new password confirmation!',
+        400
+      )
+    );
+  }
+
+  // 2) Confirm if the password is correct
+  if (!(await user.correctPassword(passwordCurrent, user.password))) {
+    return next(new AppError('The current password is incorrect!'), 401);
+  }
+  // 3) Change the user current password and passwordConfirm
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  await user.save();
+
+  // 4) Send the user a new JWT Token, so he can continue to be signed-in
+  createAndSendToken(user, 201, res);
 });
