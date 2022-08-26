@@ -60,9 +60,16 @@ const userSchema = new mongoose.Schema(
         'Please assert that the password and the confirmation password are both equal!',
       ],
     },
-    passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
+    passwordChangedAt: {
+      type: Date,
+    },
+    passwordResetToken: { type: String },
+    passwordResetExpires: { type: String },
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
   },
   {
     toJSON: {
@@ -95,6 +102,16 @@ userSchema.pre('save', async function (next, value) {
   next();
 });
 
+// Remove inactivated accounts from the queries.
+userSchema.pre(/^find/, function (next) {
+  this.find({
+    active: {
+      $ne: false,
+    },
+  });
+  next();
+});
+
 // METHODS
 userSchema.methods.correctPassword = async function (
   candidatePassword,
@@ -106,6 +123,7 @@ userSchema.methods.correctPassword = async function (
 // Encrypting the user password
 userSchema.methods.changedPasswordAfter = function (timestamp) {
   if (this.passwordChangedAt) {
+    console.log(typeof this.passwordChangedAt);
     const changedMilliseconds = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10

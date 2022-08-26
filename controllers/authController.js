@@ -15,7 +15,27 @@ const signToken = (payload) =>
   });
 
 const createAndSendToken = async (user, code, res) => {
-  const token = await signToken({ id: user._id });
+  const token = signToken({ id: user._id });
+
+  // Here we are creating a new Cookie for the JWT Token, by doing this and
+  // limiting it to be httpOnly, we can be sure that it wil only be accessible
+  // in http communication, and can't be changed directly by the browser.
+  const cookieOptions = {
+    expiresIn: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENVIRONMENT === 'production') {
+    // Defining the option to secure only allows the cookie to be sent when
+    // we are in a HTTPS connection. By doing this, only users that can connect
+    // to our API using a safe connection are allowed.
+    cookieOptions.secure = true;
+  }
+
+  res.cookie('jwt', token, cookieOptions);
+
   res.status(code).json({
     status: 'success',
     token,
