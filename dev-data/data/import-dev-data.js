@@ -6,10 +6,10 @@ const Tour = require('../../models/tourModel');
 
 // PATHS
 const configPath = path.join(__dirname, '/../../config.env');
-const toursSimplePath = path.join(__dirname, 'tours-simple.json');
+const toursDataPath = path.join(__dirname, 'tours.json');
 
 // DATA
-const tours = JSON.parse(fs.readFileSync(toursSimplePath, 'utf-8'));
+const tours = JSON.parse(fs.readFileSync(toursDataPath, 'utf-8'));
 
 // CONFIGURATION
 dotenv.config({ path: configPath });
@@ -17,10 +17,6 @@ const DB = process.env.DATABASE.replace(
   '<password>',
   process.env.DATABASE_PASSWORD
 );
-
-mongoose.connect(DB, () => {
-  console.log('The server is connected to MongoDB.');
-});
 
 // WRITING DATA INTO THE DATABASE
 const writeData = async (data) => {
@@ -48,10 +44,14 @@ const deleteAllRecords = async () => {
   }
 };
 
-// CHECKING THE FLAG
-if (process.argv[2] === '--delete') deleteAllRecords();
-else if (process.argv[2] === '--import') writeData(tours);
-else {
-  mongoose.connection.close();
-  console.log('Closing connection to MongoDB.');
-}
+mongoose.connect(DB, () => {
+  console.log('The server is connected to MongoDB.');
+
+  // CHECKING THE FLAG
+  if (process.argv[2] === '--delete') deleteAllRecords();
+  else if (process.argv[2] === '--import') writeData(tours);
+  else {
+    mongoose.connection.close();
+    console.log('Closing connection to MongoDB.');
+  }
+});

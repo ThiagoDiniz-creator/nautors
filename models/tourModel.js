@@ -106,6 +106,29 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: { type: [Number] },
+      address: { type: String },
+      description: { type: String },
+    },
+    locations: [
+      {
+        type: { type: String, default: 'Point', enum: ['Point'] },
+        coordinates: {
+          type: [Number],
+        },
+        address: { type: String },
+        description: { type: String },
+        day: { type: Number },
+      },
+    ],
+    // Creating a child reference to the guides.
+    guides: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   {
     // Activating the virtual properties to JSON and
@@ -142,6 +165,23 @@ tourSchema.pre(/^find/, function (next) {
 
   next();
 });
+
+// Using the populate method to change the guides identifiers, to the actual documents.
+tourSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'guides', select: '-__v -passwordChangedAt' });
+  next();
+});
+
+// // Embedding the guides to the tour
+// tourSchema.pre('save', async function (next) {
+//   if (this.guides) {
+//     const promises = this.guides.map((id) => User.findById(id));
+//     this.guides = await Promise.all(promises);
+//     console.log(this.guides);
+//   }
+
+//   next();
+// });
 
 // Removing the secret tours from the aggregation pipelines.
 tourSchema.pre('aggregate', function (next) {
