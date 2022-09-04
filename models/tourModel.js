@@ -148,6 +148,22 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// This is a virtual property, but in this situation, it is a virtual populate, an special
+// type o virtual property, that allows us to create a temporary reference to other collections.
+// The information are in the second argument, that will receive an object with some configurations.
+// The necessary is the ref (name of the collection that is being referenced), the foreignField (the
+// name of the field in the collection that was defined in ref, that we want to compare with a local field),
+// and localField (the field in this schema that will be used to determine if a certain document should be in
+// the "population", or not).
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
+});
+// After setting the virtual populate, we can get the values using the populate() function in any query,
+// as we would do with a field that actually exists in the schema. In this example, it would be for example:
+// Tour.find().populate({path: reviews}).
+
 // MIDDLEWARES
 // Creating a slug for every tour.
 tourSchema.pre('save', function (next) {

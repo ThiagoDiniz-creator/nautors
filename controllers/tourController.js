@@ -35,7 +35,9 @@ exports.getAllTours = catchAsync(async (req, res) => {
 // Allows the client to find an specific tour.
 exports.getOneTour = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const tour = await Tour.findById(id);
+  const tour = await Tour.findById(id).populate({
+    path: 'reviews',
+  });
 
   if (!tour) {
     return next(
