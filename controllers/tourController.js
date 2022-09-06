@@ -1,8 +1,7 @@
 // MODULES
 const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+const HandlerFactory = require('./handlerFactory');
 
 // MIDDLEWARE
 exports.bestFiveAndCheapestTours = (req, res, next) => {
@@ -15,97 +14,23 @@ exports.bestFiveAndCheapestTours = (req, res, next) => {
 };
 
 // FUNCTIONS
-exports.getAllTours = catchAsync(async (req, res) => {
-  // Creating the query
-  const featuresObj = new APIFeatures(Tour.find(), req.query);
-  featuresObj.filter().sort().fields().paginate();
-
-  // Invoking the query
-  const allTours = await featuresObj.query;
-
-  res.status(200).json({
-    status: 'success',
-    // The result property isn't in the JSEND pattern, but is a good
-    // practice.
-    results: allTours.length,
-    data: allTours,
-  });
-});
+exports.getAllTours = HandlerFactory.getMany(Tour);
 
 // Allows the client to find an specific tour.
-exports.getOneTour = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const tour = await Tour.findById(id).populate({
-    path: 'reviews',
-  });
-
-  if (!tour) {
-    return next(
-      new AppError(
-        'Invalid tour ID. Could not find any tour with this ID.',
-        404
-      )
-    );
-  }
-
-  res.status(200).json({
-    status: 'success',
-    tours: tour,
-  });
+exports.getOneTour = HandlerFactory.getOne(Tour, {
+  path: 'reviews',
 });
 
 // This function allows the client to create a new tour.
-exports.createTour = catchAsync(async (req, res) => {
-  const newTour = await Tour.create(req.body);
-
-  res.status(201).json({ status: 'success', data: newTour });
-});
+exports.createTour = HandlerFactory.createOne(Tour);
 
 // The updateTour function make it possible to change the current
 // data of any existent tour.
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const tour = await Tour.findByIdAndUpdate(
-    { _id: id },
-    { ...req.body },
-    { returnDocument: 'after', runValidators: true, context: 'query' }
-  );
-
-  if (!tour) {
-    return next(
-      new AppError(
-        'Invalid tour ID. Could not find any tour with this ID.',
-        404
-      )
-    );
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: tour,
-  });
-});
+exports.updateTour = HandlerFactory.updateOne(Tour);
 
 // The deleteTour function allows to remove a document from the
 // Tour collection.
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const tour = await Tour.findByIdAndDelete(id);
-
-  if (!tour) {
-    return next(
-      new AppError(
-        'Invalid tour ID. Could not find any tour with this ID.',
-        404
-      )
-    );
-  }
-
-  res.status(204).json({
-    status: 'success',
-    data: tour,
-  });
-});
+exports.deleteTour = HandlerFactory.deleteOne(Tour);
 
 // This function will create a pipeline that returns useful information
 // about the tours, dividing them by their difficulty.

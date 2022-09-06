@@ -18,9 +18,17 @@ router.patch('/update-me', authController.protect, userController.updateMe);
 router
   .route('/')
   .get(userController.getAllUsers)
-  .post(userController.createUser);
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    userController.createUser
+  );
 router
-  .route('/:id')
+  .route(
+    '/:id',
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide')
+  )
   .get(userController.getOneUser)
   .patch(userController.updateUser)
   .delete(userController.deleteUser);

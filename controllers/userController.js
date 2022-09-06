@@ -3,34 +3,22 @@ const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const filterObj = require('../utils/filterObj');
+const HandlerFactory = require('./handlerFactory');
 
 // FUNCTIONS
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+// This will get all the users, with the request sorting, filtering, pagination and fields.
+exports.getAllUsers = HandlerFactory.getMany(User);
 
-  res
-    .status(200)
-    .json({ status: 'success', results: users.length, data: users });
-});
+// This will get an specific user, that will be defined by the id param.
+exports.getOneUser = HandlerFactory.getOne(User);
 
-exports.getOneUser = catchAsync(async (req, res, next) => {
-  res
-    .status(500)
-    .json({ status: 'error', message: 'This route is not yet defined!' });
-});
+// This will create a new user, getting the data from the request's body.
+exports.createUser = HandlerFactory.createOne(User);
 
-exports.createUser = catchAsync(async (req, res, next) => {
-  res
-    .status(500)
-    .json({ status: 'error', message: 'This route is not yet defined!' });
-});
+// This will update an active user, by using the body's data.
+exports.updateUser = HandlerFactory.updateOne(User);
 
-exports.updateUser = catchAsync(async (req, res, next) => {
-  res
-    .status(500)
-    .json({ status: 'error', message: 'This route is not yet defined!' });
-});
-
+// This will allow clients to update their own profile.
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) Check if the user POSTed password data.
   if (
@@ -68,8 +56,5 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteUser = catchAsync(async (req, res, next) => {
-  res
-    .status(500)
-    .json({ status: 'error', message: 'This route is not yet defined!' });
-});
+// This will allow admins to manually delete user.
+exports.deleteUser = HandlerFactory.deleteOne(User);

@@ -4,8 +4,17 @@
 // sub-application.
 const router = require('express').Router();
 
+const reviewRouter = require('./reviewRoutes');
 const tourController = require('../controllers/tourController');
 const authController = require('../controllers/authController');
+
+// MERGING ROUTES
+// Nested routes are routes that start with one resource (like tour), but in the end
+// want to get or modify information from another resource. /tours/:tourId/reviews is one
+// nested route, in this situation it will be directed to this router, as it starts with /tours
+// but in the end, is a request to the review router. To solve it, we can merge the routes, by
+// using the reviewRouter as a middleware.
+router.use('/:tourId/reviews', reviewRouter);
 
 // ROUTES
 router
