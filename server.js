@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 // that are declared inside it, such as the database password,
 // and database connections string.
 dotenv.config({ path: './config.env' });
-// the DB is the database connection string, that is the the
+// the DB is the database connection string, that is the
 // information we need to connect to MongoDB.
 const DB = process.env.DATABASE.replace(
   '<password>',
@@ -26,9 +26,11 @@ mongoose.connect(DB, {
 // coding errors, and will not allow the application to run anymore,
 // because they will corrupt the app state.
 // It also needs to come before the app, because in an error happens in
-// the app configuration, it need to be handled properly.
+// the app configuration, it needs to be handled properly.
 process.on('uncaughtException', (err) => {
+  // eslint-disable-next-line no-console
   console.log('An unhandled exception has occurred!');
+  // eslint-disable-next-line no-console
   console.log(`${err.name}, ${err.message}`);
   process.exit(1);
 });
@@ -40,8 +42,9 @@ const app = require('./app');
 const port = process.env.PORT || 3000;
 
 // Saving the server to a constant variable.
-const server = app.listen(port, () =>
-  console.log(`The server is listening at localhost:${port}`)
+const server = app.listen(port, () => {
+  console.log(`The server is listening at localhost:${port}`);
+}
 );
 
 // UNHANDLED REJECTION HANDLER
@@ -49,7 +52,9 @@ const server = app.listen(port, () =>
 // All errors that are not captured in any try/catch block or
 // async wrapper function will be caught here.
 process.on('unhandledRejection', (err) => {
+  // eslint-disable-next-line no-console
   console.log('An unhadled rejection has happened');
+  // eslint-disable-next-line no-console
   console.log(`${err.name}, ${err.message}`);
   // We first handle all the received requests, and stop receiving
   // new ones, before closing the app.

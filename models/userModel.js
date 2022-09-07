@@ -98,7 +98,7 @@ userSchema.pre('save', async function (next, value) {
 userSchema.pre('save', async function (next, value) {
   if (!this.isModified('password')) return next();
 
-  this.passwordChangedAt = new Date(Date.now() - 1 * 1000);
+  this.passwordChangedAt = new Date(Date.now() - 1000);
   next();
 });
 
@@ -123,7 +123,6 @@ userSchema.methods.correctPassword = async function (
 // Encrypting the user password
 userSchema.methods.changedPasswordAfter = function (timestamp) {
   if (this.passwordChangedAt) {
-    console.log(typeof this.passwordChangedAt);
     const changedMilliseconds = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10
@@ -146,7 +145,7 @@ userSchema.methods.createPasswordResetToken = async function () {
 };
 
 // MODEL
-const User = new mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
 
 // EXPORTING
 module.exports = User;

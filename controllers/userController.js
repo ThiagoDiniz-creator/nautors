@@ -1,4 +1,6 @@
 // MODULES
+// noinspection JSUnresolvedFunction
+
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
@@ -7,9 +9,9 @@ const HandlerFactory = require('./handlerFactory');
 
 // FUNCTIONS
 // This will get all the users, with the request sorting, filtering, pagination and fields.
-exports.getAllUsers = HandlerFactory.getMany(User);
+exports.getAllUsers = HandlerFactory.getAll(User);
 
-// This will get an specific user, that will be defined by the id param.
+// This will get a specific user, that will be defined by the id param.
 exports.getOneUser = HandlerFactory.getOne(User);
 
 // This will create a new user, getting the data from the request's body.
@@ -55,6 +57,12 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+// This middleware will set the param to id.
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user._id;
+  next();
+};
 
 // This will allow admins to manually delete user.
 exports.deleteUser = HandlerFactory.deleteOne(User);

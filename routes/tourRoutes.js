@@ -28,20 +28,32 @@ router
   .route('/monthly-plan/:year')
   .get(
     authController.protect,
-    authController.restrictTo('admin', 'lead-guide'),
+    authController.restrictTo('admin', 'lead-guide', 'guide'),
     tourController.getMonthlyPlan
   );
 
 router
   .route('/:id')
-  .get(authController.protect, tourController.getOneTour)
-  .patch(authController.protect, tourController.updateTour)
-  .delete(authController.protect, tourController.deleteTour);
+  .get(tourController.getOneTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.updateTour
+  )
+  .delete(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.deleteTour
+  );
 
 router
   .route('/')
-  .get(authController.protect, tourController.getAllTours)
-  .post(authController.protect, tourController.createTour);
+  .get(tourController.getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.createTour
+  );
 
 // EXPORTING
 module.exports = router;

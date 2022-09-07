@@ -253,7 +253,7 @@
         const bounds = new mapboxgl.LngLatBounds();
 
         geojson.features.forEach(function(marker) {
-          var el = document.createElement('div');
+          let el = document.createElement("div");
           el.className = 'marker';
 
           new mapboxgl.Marker({

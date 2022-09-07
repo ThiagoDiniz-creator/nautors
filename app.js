@@ -29,7 +29,7 @@ const publicPath = path.join(__dirname, '/public');
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-// This is the middleware that will allows us to access the files
+// This is the middleware that will allow us to access the files
 // that are in the public folder.
 app.use(express.static(publicPath));
 // This is the middleware that will parse the JSON that is in the
@@ -39,7 +39,7 @@ app.use(express.static(publicPath));
 app.use(express.json({ limit: '10kb' }));
 
 // Limiting requests from the same client.
-// the rateLimit package allows us to block an user from trying to send
+// the rateLimit package allows us to block a user from trying to send
 // too many requests, so it can avoid DDOS attempts, and also excessive
 // traffic from the clients. You should define the limit and the time with
 // caution, because different APIs have different limits and need different

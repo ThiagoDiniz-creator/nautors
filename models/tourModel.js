@@ -32,8 +32,7 @@ const tourSchema = new mongoose.Schema(
       validate: {
         // Only accepting prices that are higher than 0.
         validator(value) {
-          if (value > 0) return true;
-          return false;
+          return value > 0;
         },
         message: 'A tour price must be above 0!',
       },
@@ -139,8 +138,14 @@ const tourSchema = new mongoose.Schema(
     toObject: {
       virtuals: true,
     },
+    autoIndex: true,
   }
 );
+
+// INDEXES
+tourSchema.index({ price: 1 });
+tourSchema.index({ ratingAverage: -1 });
+tourSchema.index({ slug: 1 });
 
 // VIRTUAL PROPERTIES
 // Returning the field durationWeeks only in queries, as it is a virtual property.
@@ -148,7 +153,7 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
-// This is a virtual property, but in this situation, it is a virtual populate, an special
+// This is a virtual property, but in this situation, it is a virtual populate, a special
 // type o virtual property, that allows us to create a temporary reference to other collections.
 // The information are in the second argument, that will receive an object with some configurations.
 // The necessary is the ref (name of the collection that is being referenced), the foreignField (the
@@ -206,7 +211,7 @@ tourSchema.pre('aggregate', function (next) {
 });
 
 // MODEL
-const tourModel = new mongoose.model('Tour', tourSchema);
+const tourModel = mongoose.model('Tour', tourSchema);
 
 // EXPORTING
 module.exports = tourModel;

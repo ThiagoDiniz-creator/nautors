@@ -16,7 +16,7 @@ module.exports.createOne = (model, desiredFields = []) =>
     // 2) Create the new document.
     const newDoc = await model.create(filteredData);
 
-    // 3) Return the new create document.
+    // 3) Return the new created document.
     res.status(201).json({ status: 'success', data: newDoc });
   });
 
@@ -28,7 +28,7 @@ module.exports.getOne = (model, populateConfig = undefined) =>
     if (!id) {
       return next(
         new AppError(
-          `To retrieve only one ${model.modeName} document you need to provide an ID!`,
+          `To retrieve only one ${model.modelName} document you need to provide an ID!`,
           400
         )
       );
@@ -58,7 +58,7 @@ module.exports.getOne = (model, populateConfig = undefined) =>
   });
 
 // Get many
-module.exports.getMany = (model) =>
+module.exports.getAll = (model) =>
   catchAsync(async (req, res, next) => {
     // 1) Creating the APIFeatures obj
     const filterObj = new APIFeatures(model.find(), req.query);
@@ -119,7 +119,7 @@ module.exports.deleteOne = (model) =>
     // 2) Trying to delete the document.
     const doc = await model.findByIdAndDelete(id);
 
-    // 3) Checking if the delete wasn't successful.
+    // 3) Checking if to delete wasn't successful.
     if (!doc) {
       return next(
         new AppError(

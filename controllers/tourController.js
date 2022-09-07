@@ -14,9 +14,9 @@ exports.bestFiveAndCheapestTours = (req, res, next) => {
 };
 
 // FUNCTIONS
-exports.getAllTours = HandlerFactory.getMany(Tour);
+exports.getAllTours = HandlerFactory.getAll(Tour);
 
-// Allows the client to find an specific tour.
+// Allows the client to find a specific tour.
 exports.getOneTour = HandlerFactory.getOne(Tour, {
   path: 'reviews',
 });
@@ -35,6 +35,7 @@ exports.deleteTour = HandlerFactory.deleteOne(Tour);
 // This function will create a pipeline that returns useful information
 // about the tours, dividing them by their difficulty.
 exports.getTourStats = catchAsync(async (req, res) => {
+  // noinspection JSUnresolvedFunction
   const stats = await Tour.aggregate([
     {
       $match: {
@@ -82,8 +83,8 @@ exports.getTourStats = catchAsync(async (req, res) => {
   });
 });
 
-// The monthly plan is a aggregation pipeline that makes it
-// possible to see all the tours planned in an specific year
+// The monthly plan is an aggregation pipeline that makes it
+// possible to see all the tours planned in a specific year
 // and month.
 exports.getMonthlyPlan = catchAsync(async (req, res) => {
   const year = Number(req.params.year);

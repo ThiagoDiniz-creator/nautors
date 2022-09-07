@@ -52,7 +52,7 @@ const handleDuplicateKeyError = (err) =>
   );
 
 // the handleValidationError is a function that will create a nicely formatted
-// response to a N amount of validation errors that may occur. Allowing the client
+// response to an N amount of validation errors that may occur. Allowing the client
 // to see all the errors individually, and take the correct actions.
 const handleValidationError = (err) => {
   const errors = Object.keys(err.errors).map((name) => err.errors[name]);

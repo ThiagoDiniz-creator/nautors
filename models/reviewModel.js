@@ -1,5 +1,6 @@
 // MODULES
 const mongoose = require('mongoose');
+const Tour = require('../models/tourModel');
 
 // SCHEMA
 const reviewSchema = new mongoose.Schema(
@@ -63,6 +64,10 @@ reviewSchema.pre(/^findOne/g, function (next) {
     path: 'tour',
     select: 'name',
   });
+  next();
+});
+
+reviewSchema.pre('findOneAndUpdate', function (next) {
   next();
 });
 

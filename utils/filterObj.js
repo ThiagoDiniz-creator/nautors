@@ -4,6 +4,5 @@ module.exports = (object, desiredFields) => {
     desiredFields.includes(el)
   );
   // eslint-disable-next-line node/no-unsupported-features/es-builtins
-  const filteredObj = Object.fromEntries(filteredProperties);
-  return filteredObj;
+  return Object.fromEntries(filteredProperties);
 };

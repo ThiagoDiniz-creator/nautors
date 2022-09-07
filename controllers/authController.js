@@ -8,7 +8,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
 // FUNCTIONS
-// Function that will sign the JSON Web Token.
+//  that will sign the JSON Web Token.
 const signToken = (payload) =>
   jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -29,7 +29,7 @@ const createAndSendToken = async (user, code, res) => {
 
   if (process.env.NODE_ENVIRONMENT === 'production') {
     // Defining the option to secure only allows the cookie to be sent when
-    // we are in a HTTPS connection. By doing this, only users that can connect
+    // we are in an HTTPS connection. By doing this, only users that can connect
     // to our API using a safe connection are allowed.
     cookieOptions.secure = true;
   }
@@ -49,6 +49,7 @@ const verifyToken = util.promisify(jwt.verify);
 // a JWT (JSON Web Token) to automatically give the new user authorization
 // to the protected routes.
 exports.signUp = catchAsync(async (req, res, next) => {
+  // noinspection JSUnresolvedFunction
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
@@ -57,7 +58,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
   });
   newUser.password = undefined;
 
-  createAndSendToken(newUser, 201, res);
+  await createAndSendToken(newUser, 201, res);
 });
 
 // the login function allows users that already have accounts to get
@@ -79,6 +80,7 @@ exports.login = catchAsync(async (req, res, next) => {
   // After we do the query to find the user, we check if the password
   // that was sent is valid. If both the verifications are valid,
   // we can assure that the login attempt was valid.
+  // noinspection JSUnresolvedFunction
   const user = await User.findOne({ email }).select('+password');
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(
@@ -95,11 +97,11 @@ exports.login = catchAsync(async (req, res, next) => {
   return res.status(200).json({ status: 'success', token });
 });
 
-// The protect() function will allow us to protect our routes from unauthorized
+// To protect() function will allow us to protect our routes from unauthorized
 // access, from users who aren't logged in, who have expired JWT or who are
 // using tokens that were issued before the last password change.
 exports.protect = catchAsync(async (req, res, next) => {
-  // 1) The first step is to verify if the user sent us a authorization header, that
+  // 1) The first step is to verify if the user sent us an authorization header, that
   // follows the JWT pattern: Authorization: Bearer [token].
   if (
     !req.headers.authorization ||
@@ -110,7 +112,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 2) After checking for the existence of a authorization header, and confirming
+  // 2) After checking for the existence of an authorization header, and confirming
   // that the content was in accordance to the JWT pattern, we can verify if the
   // token is valid.
   const token = req.headers.authorization.split('Bearer ')[1];
@@ -121,6 +123,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // 3) Check if the user still exists to make sure that an inactive user can't
   // access our protected routes, because he doesn't have the permissions anymore.
+  // noinspection JSUnresolvedFunction
   const currentUser = await User.findById(decodedToken.id);
 
   if (!currentUser) {
@@ -158,6 +161,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get the user's email from POST.
   const { email } = req.body;
 
+  // noinspection JSUnresolvedFunction
   const user = await User.findOne({ email });
 
   if (!user) {
@@ -208,6 +212,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     .createHash('sha256')
     .update(token)
     .digest('hex');
+  // noinspection JSUnresolvedFunction
   const user = await User.findOne({
     passwordResetToken: encryptedToken,
     passwordResetExpires: {
@@ -228,11 +233,12 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log the user in, send the JWT to the client
-  createAndSendToken(user, 200, res);
+  await createAndSendToken(user, 200, res);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1) Confirm if the user sent both the password, the newPassword and newPasswordConfirm.
+  // noinspection JSUnresolvedFunction
   const user = await User.findById(req.user.id).select('+password');
   const { passwordCurrent, password, passwordConfirm } = req.body;
   if (!(passwordCurrent && password && passwordConfirm)) {
@@ -254,5 +260,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Send the user a new JWT Token, so he can continue to be signed-in
-  createAndSendToken(user, 201, res);
+  await createAndSendToken(user, 201, res);
 });
