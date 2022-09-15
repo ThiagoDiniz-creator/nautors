@@ -2,6 +2,7 @@
 const Tour = require('../models/tourModel');
 const catchAsync = require('../utils/catchAsync');
 const HandlerFactory = require('./handlerFactory');
+const AppError = require('../utils/appError');
 
 // MIDDLEWARE
 exports.bestFiveAndCheapestTours = (req, res, next) => {
@@ -31,6 +32,37 @@ exports.updateTour = HandlerFactory.updateOne(Tour);
 // The deleteTour function allows to remove a document from the
 // Tour collection.
 exports.deleteTour = HandlerFactory.deleteOne(Tour);
+
+// the getToursWithin returns the closest tours to the center of a point.
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { unity, latlgn, distance } = req.params;
+  const [lat, lgn] = latlgn.split(',');
+  const radius = unity === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  // 1) Check if the provided center is valid.
+  if (!lat || !lgn) {
+    return next(
+      new AppError(
+        'Please, provide latitude and longitude in the format: lat, lgn',
+        400
+      )
+    );
+  }
+
+  // 2) Get the results close to the center.
+  const closeTours = await Tour.find({
+    startLocation: {
+      $geoWithin: {
+        $centerSphere: [[lgn, lat], radius],
+      },
+    },
+  }).select('-guides');
+
+  // 3) Send the response.
+  res
+    .status(200)
+    .json({ status: 'success', results: closeTours.length, data: closeTours });
+});
 
 // This function will create a pipeline that returns useful information
 // about the tours, dividing them by their difficulty.
@@ -135,4 +167,38 @@ exports.getMonthlyPlan = catchAsync(async (req, res) => {
     status: 'success',
     data: plan,
   });
+});
+
+// Gets the distance of the closest tours.
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { unity, latlgn } = req.params;
+  const [lat, lgn] = latlgn.split(',');
+
+  // 1) Check if the provided center is valid.
+  if (!lat || !lgn) {
+    return next(
+      new AppError(
+        'Please, provide latitude and longitude in the format: lat, lgn',
+        400
+      )
+    );
+  }
+
+  const distances = await Tour.aggregate([
+    {
+      // Always needs to be the first stage. It also requires at least one of the
+      // geospatial fields to be an index.
+      $geoNear: {
+        // All the distances will be calculated from this point.
+        near: { type: 'Point', coordinates: [Number(lgn), Number(lat)] },
+        // The name of the field that will receive the calculated distance.
+        distanceField: 'distance',
+      },
+    },
+  ]);
+
+  // 3) Send the response.
+  res
+    .status(200)
+    .json({ status: 'success', results: distances.length, data: distances });
 });

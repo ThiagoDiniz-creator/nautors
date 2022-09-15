@@ -1,6 +1,6 @@
 // MODULES
 const mongoose = require('mongoose');
-const Tour = require('../models/tourModel');
+const Tour = require('./tourModel');
 
 // SCHEMA
 const reviewSchema = new mongoose.Schema(
@@ -47,11 +47,13 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+// INDEXES
+reviewSchema.index({ user: 1, tour: 1 }, { unique: true });
+
 // MIDDLEWARES
 // Removing unnecessary data from queries.
 reviewSchema.pre(/^find/g, function (next) {
   this.select('-__v');
-
   next();
 });
 
@@ -67,9 +69,48 @@ reviewSchema.pre(/^findOne/g, function (next) {
   next();
 });
 
-reviewSchema.pre('findOneAndUpdate', function (next) {
+// UPDATING THE RATING'S DATA
+reviewSchema.post('save', async function () {
+  await this.constructor.calcStats(this.tour);
+});
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  this.r = await this.clone().findOne({ id: this._conditions._id });
   next();
 });
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  if (this.r) {
+    await this.r.constructor.calcStats(this.r.tour._id);
+  }
+});
+
+// STATIC METHODS
+reviewSchema.statics.calcStats = async function (tour) {
+  const stats = await this.aggregate([
+    {
+      $match: {
+        tour,
+      },
+    },
+    {
+      $group: {
+        _id: '$tour',
+        avgRating: {
+          $avg: '$rating',
+        },
+        nRating: {
+          $sum: 1,
+        },
+      },
+    },
+  ]);
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tour, {
+      ratingQuantity: stats[0].nRating,
+      ratingAverage: stats[0].avgRating,
+    });
+  }
+};
 
 // MODEL
 const Review = mongoose.model('Review', reviewSchema);

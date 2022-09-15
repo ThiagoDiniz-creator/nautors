@@ -18,6 +18,14 @@ router.use('/:tourId/reviews', reviewRouter);
 
 // ROUTES
 router
+  .route('/tours-within/:distance/center/:latlgn/unity/:unity')
+  .get(tourController.getToursWithin);
+
+router
+  .route('/distances/:latlgn/unity/:unity')
+  .get(tourController.getDistances);
+
+router
   .route('/top-5-cheap')
   .get(tourController.bestFiveAndCheapestTours, tourController.getAllTours);
 

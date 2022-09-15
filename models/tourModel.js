@@ -60,6 +60,8 @@ const tourSchema = new mongoose.Schema(
     ratingAverage: {
       type: Number,
       default: 4.5,
+      // set is a function that will be executed every time this field changes.
+      set: (value) => Math.round(value),
     },
     ratingQuantity: {
       type: Number,
@@ -138,6 +140,7 @@ const tourSchema = new mongoose.Schema(
     toObject: {
       virtuals: true,
     },
+    // Disable in production
     autoIndex: true,
   }
 );
@@ -146,6 +149,7 @@ const tourSchema = new mongoose.Schema(
 tourSchema.index({ price: 1 });
 tourSchema.index({ ratingAverage: -1 });
 tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocations: '2dsphere' });
 
 // VIRTUAL PROPERTIES
 // Returning the field durationWeeks only in queries, as it is a virtual property.
