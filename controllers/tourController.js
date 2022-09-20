@@ -171,8 +171,10 @@ exports.getMonthlyPlan = catchAsync(async (req, res) => {
 
 // Gets the distance of the closest tours.
 exports.getDistances = catchAsync(async (req, res, next) => {
-  const { unity, latlgn } = req.params;
+  const { unit, latlgn } = req.params;
   const [lat, lgn] = latlgn.split(',');
+  // The $geoNear results are in meters, so we need to convert them to miles or km.
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
 
   // 1) Check if the provided center is valid.
   if (!lat || !lgn) {
@@ -190,9 +192,19 @@ exports.getDistances = catchAsync(async (req, res, next) => {
       // geospatial fields to be an index.
       $geoNear: {
         // All the distances will be calculated from this point.
-        near: { type: 'Point', coordinates: [Number(lgn), Number(lat)] },
+        near: {
+          type: 'Point',
+          coordinates: [Number(lgn), Number(lat)],
+        },
         // The name of the field that will receive the calculated distance.
         distanceField: 'distance',
+        distanceMultiplier: multiplier,
+      },
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1,
       },
     },
   ]);

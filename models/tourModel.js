@@ -149,7 +149,7 @@ const tourSchema = new mongoose.Schema(
 tourSchema.index({ price: 1 });
 tourSchema.index({ ratingAverage: -1 });
 tourSchema.index({ slug: 1 });
-tourSchema.index({ startLocations: '2dsphere' });
+tourSchema.index({ startLocation: '2dsphere' });
 
 // VIRTUAL PROPERTIES
 // Returning the field durationWeeks only in queries, as it is a virtual property.
@@ -210,7 +210,11 @@ tourSchema.pre(/^find/, function (next) {
 
 // Removing the secret tours from the aggregation pipelines.
 tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  if (Object.keys(this.pipeline()[0])[0] === '$geoNear') {
+    this.pipeline().push({ $match: { secretTour: { $ne: true } } });
+  } else {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  }
   next();
 });
 

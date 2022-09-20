@@ -22,7 +22,7 @@ router
   .get(tourController.getToursWithin);
 
 router
-  .route('/distances/:latlgn/unity/:unity')
+  .route('/distances/:latlgn/unity/:unit')
   .get(tourController.getDistances);
 
 router

@@ -21,7 +21,16 @@ const AppError = require('./utils/appError');
 const app = express();
 
 // PATHS
-const publicPath = path.join(__dirname, '/public');
+const viewsPath = path.join(__dirname, 'views');
+const publicPath = path.join(__dirname, 'public');
+
+// PUG
+app.set('view engine', 'pug');
+app.set('views', viewsPath);
+
+// This is the middleware that will allow us to access the files
+// that are in the public folder.
+app.use(express.static(publicPath));
 
 // MIDDLEWARES
 // This is the middleware that will print in the console all the
@@ -29,9 +38,7 @@ const publicPath = path.join(__dirname, '/public');
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-// This is the middleware that will allow us to access the files
-// that are in the public folder.
-app.use(express.static(publicPath));
+
 // This is the middleware that will parse the JSON that is in the
 // request body. Making it possible to handle data from POST, PATCH
 // and PUT requests. The limit option makes it impossible for clients
@@ -97,7 +104,15 @@ app.use(
   })
 );
 
-// ROUTERS
+// ROUTES
+
+app.get('/', (req, res) => {
+  res.status(200).render('base', {
+    tour: 'The Forest Hiker',
+    user: 'Jonas',
+  });
+});
+
 // We are giving these sub-applications their own routes. All the
 // routes that they define inside their own application will be accessible
 // if you add these prefixes.
