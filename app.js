@@ -15,6 +15,7 @@ const errorController = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 const AppError = require('./utils/appError');
 
 // CREATING THE SERVER
@@ -105,13 +106,8 @@ app.use(
 );
 
 // ROUTES
-
-app.get('/', (req, res) => {
-  res.status(200).render('base', {
-    tour: 'The Forest Hiker',
-    user: 'Jonas',
-  });
-});
+// View router
+app.use('/', viewRouter);
 
 // We are giving these sub-applications their own routes. All the
 // routes that they define inside their own application will be accessible

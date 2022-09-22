@@ -1,0 +1,46 @@
+extends base
+
+block content
+    section.section-header
+        .heading-box
+            h1.heading-primary
+                span tour.name
+            .heading-box__group
+                .heading-box__detail
+                    svg.heading-box__icon
+                        use(href='/img/icons.svg#icon-clock')
+                    span.description__text #{tour.duration} days
+                .heading-box__detail
+                    svg.heading-box__icon
+                        use(href='/img/icons.svg#icon-map-pin')
+                    span.description__text tour.startLocation.description
+    section.section-description
+        .overview-box
+            div
+                .overview-box__group
+                    h2.heading-secondary.ma-bt-lg Quick facts
+                    .overview-box__detail
+                        svg.overview-box__icon
+                            use(href='/img/icons.svg#icon-calendar')
+                        span.overview-box__label Next date
+                        span.overview-box__text=tour.startDates[0].toLocaleString('en-us', {month: 'long', year: 'numeric'})
+                    .overview-box__detail
+                        svg.overview-box__icon
+                            use(href='/img/icons.svg#icon-trending-up')
+                        span.overview-box__label Difficulty
+                        span.overview-box__text=tour.difficulty
+                    .overview-box__detail
+                        svg.overview-box__icon
+                            use(href='/img/icons.svg#icon-user')
+                        span.overview-box__label Participants
+                        span.overview-box__text=tour.maxGroupSize
+                    .overview-box__detail
+                        svg.overview-box__icon
+                            use(href='/img/icons.svg#icon-start')
+                        span.overview-box__label Rating
+                        span.overview-box__text #{tour.ratingAverage.toFixed(2)}/5
+                .overview-box__group
+                  h2.heading-secondary.
+                  each guide in tour.guides
+
+
