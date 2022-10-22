@@ -18,7 +18,12 @@ exports.getTour = catchAsync(async (req, res) => {
   const { slug } = req.params;
 
   // 2) Find the proper tour
-  const tour = await Tour.find({ slug });
+  const tour = await Tour.findOne({ slug }).populate({
+    path: 'reviews',
+    populate: { path: 'user' },
+  });
+
+  console.log(tour);
 
   // 3) Check if the tour was found
   if (!tour) {
