@@ -1,13 +1,19 @@
 doctype html
 html
     head
-        title Natours | Exciting tours for adventurous people
-        //- Todos os diretórios que apontam para o public, devem ter um / no seu início.
-        link(rel='stylesheet' href='/css/style.css')
-        link(rel='icon' type='image/png' href='/img/favicon.png')
-        meta(name='viewport' content='width=device-width, initial-scale=1.0')
+        block head
+            title Natours | #{title}
+            //- Todos os diretórios que apontam para o public, devem ter um / no seu início.
+            link(rel='stylesheet' href='/css/style.css')
+            link(rel='icon' type='image/png' href='/img/favicon.png')
+            meta(name='viewport' content='width=device-width, initial-scale=1.0' script-src='api.mapbox.com')
+            link(href='https://fonts.googleapis.com/css?family=Lato:300,300i,700' rel='stylesheet')
 
-        link(href='https://fonts.googleapis.com/css?family=Lato:300,300i,700' rel='stylesheet')
+            //- Mapbox config -//
+            script(src='/js/mapbox-gl.js')
+            script(src='/js/axios.min.js')
+            link(href='/css/mapbox-gl.css' rel='stylesheet')
+
     body
         //- HEADER
         include _header
@@ -18,7 +24,5 @@ html
 
         //- FOOTER
         include _footer
-
-
 
 

@@ -32,7 +32,11 @@ exports.getTour = catchAsync(async (req, res) => {
 
   // 4) Send the page, with the data back.
   res.status(200).render('tour', {
-    title: 'The Forest Hiker',
+    title: tour.name.toUpperCase(),
     tour,
   });
 });
+
+exports.login = catchAsync(async (req, res) =>
+  res.status(200).render('login', { title: 'Log into your account' })
+);
