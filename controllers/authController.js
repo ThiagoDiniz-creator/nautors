@@ -104,8 +104,9 @@ exports.protect = catchAsync(async (req, res, next) => {
   // 1) The first step is to verify if the user sent us an authorization header, that
   // follows the JWT pattern: Authorization: Bearer [token].
   if (
-    !req.headers.authorization ||
-    !req.headers.authorization.startsWith('Bearer ')
+    (!req.headers.authorization ||
+      !req.headers.authorization.startsWith('Bearer ')) &&
+    !req.cookies.jwt
   ) {
     return next(
       new AppError('You need to be logged in before accessing this route!', 401)
@@ -115,7 +116,16 @@ exports.protect = catchAsync(async (req, res, next) => {
   // 2) After checking for the existence of an authorization header, and confirming
   // that the content was in accordance to the JWT pattern, we can verify if the
   // token is valid.
-  const token = req.headers.authorization.split('Bearer ')[1];
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer ')
+  ) {
+    token = req.headers.authorization.split('Bearer ')[1];
+  } else {
+    token = req.cookies.jwt;
+  }
+
   const decodedToken = await verifyToken(token, process.env.JWT_SECRET);
   if (!decodedToken) {
     return next(new AppError('Please try to login again!'));
@@ -142,6 +152,52 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // If everything was successful, we can simply go to the next middleware.
   next();
+});
+
+// Only for rendered pages, no error will be sent
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  if (req.cookies.jwt === 'logged-out')
+  { return next(); }
+
+  // 1) The first step is to verify if the user sent us an authorization header, that
+  // follows the JWT pattern: Authorization: Bearer [token].
+  if (req.cookies.jwt) {
+    const decodedToken = await verifyToken(
+      req.cookies.jwt,
+      process.env.JWT_SECRET
+    );
+    if (!decodedToken) {
+      next();
+    }
+
+    // 3) Check if the user still exists to make sure that an inactive user can't
+    // access our protected routes, because he doesn't have the permissions anymore.
+    // noinspection JSUnresolvedFunction
+    const currentUser = await User.findById(decodedToken.id);
+
+    if (!currentUser) {
+      next();
+    }
+
+    // 4) Check if the user changed the password before the token was created. This
+    // avoids access from tokens that were issued before a password change, a pattern
+    // that makes sure we are only giving access to the account's real owner.
+    if (currentUser.changedPasswordAfter(decodedToken.iat)) {
+      next();
+    }
+    res.locals.user = currentUser;
+    // // If everything was successful, we can simply go to the next middleware.
+  }
+  // If the condition failed, just proceed.
+  next();
+});
+
+exports.logout = catchAsync(async (req, res, next) => {
+  res.cookie('jwt', 'logged-out', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
 });
 
 // This function allows to restrict the access to certain routes to only the

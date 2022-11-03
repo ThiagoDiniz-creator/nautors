@@ -10,6 +10,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 
 const errorController = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -45,6 +46,7 @@ if (process.env.NODE_ENV === 'development') {
 // and PUT requests. The limit option makes it impossible for clients
 // to send too big JSON files, like what happens in DDOS.
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 // Limiting requests from the same client.
 // the rateLimit package allows us to block a user from trying to send
@@ -74,12 +76,14 @@ const scriptSrcUrls = [
   'https://api.tiles.mapbox.com/',
   'https://api.mapbox.com/',
   'https://cdn.jsdelivr.net',
+  'ws:',
 ];
 const styleSrcUrls = [
   'https://api.mapbox.com/',
   'https://api.tiles.mapbox.com/',
   'https://fonts.googleapis.com/',
   'https://cdn.jsdelivr.net',
+  'ws:',
 ];
 const connectSrcUrls = [
   'https://api.mapbox.com/',
@@ -87,6 +91,7 @@ const connectSrcUrls = [
   'https://b.tiles.mapbox.com/',
   'https://events.mapbox.com/',
   'https://cdn.jsdelivr.net',
+  'ws:',
 ];
 const fontSrcUrls = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 app.use(
