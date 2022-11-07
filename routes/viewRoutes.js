@@ -16,5 +16,15 @@ router.get('/tour/:slug', authController.protect, viewController.getTour);
 // Login page
 router.get('/login', viewController.login);
 
+// Profile page
+router.get('/me', authController.protect, viewController.getAccount);
+
+// Update user data
+router.post(
+  '/submit-user-data',
+  authController.protect,
+  viewController.updateUserData
+);
+
 // EXPORTING THE ROUTER
 module.exports = router;

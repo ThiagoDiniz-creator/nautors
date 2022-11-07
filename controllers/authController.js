@@ -34,6 +34,7 @@ const createAndSendToken = async (user, code, res) => {
     cookieOptions.secure = true;
   }
 
+  // res.cookie() is used to set a new cookie into the http communication.
   res.cookie('jwt', token, cookieOptions);
 
   res.status(code).json({
@@ -48,8 +49,7 @@ const verifyToken = util.promisify(jwt.verify);
 // The signUp function allows us to create a new user, and also returns
 // a JWT (JSON Web Token) to automatically give the new user authorization
 // to the protected routes.
-exports.signUp = catchAsync(async (req, res, next) => {
-  // noinspection JSUnresolvedFunction
+exports.signUp = catchAsync(async (req, res) => {
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
@@ -93,8 +93,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // Finally, we can sign a new token with the user's id in the payload
   // (used in other functions) and send it back to give him access.
-  const token = signToken({ id: user._id });
-  return res.status(200).json({ status: 'success', token });
+  await createAndSendToken(user, 200, res);
 });
 
 // To protect() function will allow us to protect our routes from unauthorized
@@ -156,9 +155,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
 // Only for rendered pages, no error will be sent
 exports.isLoggedIn = catchAsync(async (req, res, next) => {
-  if (req.cookies.jwt === 'logged-out')
-  { return next(); }
-
+  if (req.cookies.jwt === 'logged-out') return next();
   // 1) The first step is to verify if the user sent us an authorization header, that
   // follows the JWT pattern: Authorization: Bearer [token].
   if (req.cookies.jwt) {
@@ -167,7 +164,7 @@ exports.isLoggedIn = catchAsync(async (req, res, next) => {
       process.env.JWT_SECRET
     );
     if (!decodedToken) {
-      next();
+      return next();
     }
 
     // 3) Check if the user still exists to make sure that an inactive user can't
@@ -176,23 +173,23 @@ exports.isLoggedIn = catchAsync(async (req, res, next) => {
     const currentUser = await User.findById(decodedToken.id);
 
     if (!currentUser) {
-      next();
+      return next();
     }
 
     // 4) Check if the user changed the password before the token was created. This
     // avoids access from tokens that were issued before a password change, a pattern
     // that makes sure we are only giving access to the account's real owner.
     if (currentUser.changedPasswordAfter(decodedToken.iat)) {
-      next();
+      return next();
     }
     res.locals.user = currentUser;
-    // // If everything was successful, we can simply go to the next middleware.
+    // If everything was successful, we can simply go to the next middleware.
   }
   // If the condition failed, just proceed.
   next();
 });
 
-exports.logout = catchAsync(async (req, res, next) => {
+exports.logout = catchAsync(async (req, res) => {
   res.cookie('jwt', 'logged-out', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
@@ -217,9 +214,10 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get the user's email from POST.
   const { email } = req.body;
 
-  // noinspection JSUnresolvedFunction
+  // Searching for the user
   const user = await User.findOne({ email });
 
+  // If there is no user with this email
   if (!user) {
     return next(
       new AppError(
@@ -233,11 +231,11 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const token = await user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  // 3) Email the user random token.
+  // 3) Email the user his random token.
   const resetURL = `${req.protocol}://${req.get(
     'host'
   )}/api/v1/users/resetPassword/${token}`;
-  const message = `Forgot your password? Submit a Patch request with your new password and passwordConfirm to: ${resetURL}. If you didn't forgot your email, please ignore this password!`;
+  const message = `Forgot your password? Submit a Patch request with your new password and passwordConfirm to: ${resetURL}. If you didn't forgot your email, please ignore this message!`;
 
   try {
     await sendEmail({
@@ -268,7 +266,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     .createHash('sha256')
     .update(token)
     .digest('hex');
-  // noinspection JSUnresolvedFunction
   const user = await User.findOne({
     passwordResetToken: encryptedToken,
     passwordResetExpires: {

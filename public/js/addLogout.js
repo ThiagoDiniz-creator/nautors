@@ -7,7 +7,8 @@ document.querySelector('#logout').addEventListener('click', async () => {
 
     if (res.status === 200) {
       showAlert('success', 'Logged out successfully!');
-      location.reload(true);
+      // eslint-disable-next-line no-restricted-globals
+      location.assign('/');
     } else {
       showAlert('error', 'You are not currently logged in!');
     }

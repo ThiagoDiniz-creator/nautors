@@ -3,26 +3,52 @@ const AppError = require('../utils/appError');
 
 // sendErrorDev is a function created to send developers the highest level of
 // detail and information when creating errors.
-const sendErrorDev = (err, res) => {
-  // If we are in development environment, we should send as much information as we can to the client
-  // because, in this situation, we are going to be the client.
-  res.status(err.statusCode).json({
-    status: 'fail',
-    message: err.message,
-    stack: err.stack,
-    error: err,
-  });
+const sendErrorDev = (err, req, res) => {
+  if (req.originalUrl.startsWith('/api')) {
+    // If we are in development environment, we should send as much information as we can to the client
+    // because, in this situation, we are going to be the client.
+    res.status(err.statusCode).json({
+      status: 'fail',
+      message: err.message,
+      stack: err.stack,
+      error: err,
+    });
+  } else {
+    res
+      .status(err.statusCode)
+      .render('error', { title: err.title, message: err.message });
+  }
 };
 
 // sendErrorProd was developed to give clients well formatted and written error
 // messages, that will convey information in a simple and non-technical language.
-const sendErrorProd = (err, res) => {
-  // If we are in production environment, we should send as little data as possible. Only the sufficient
-  // to help the client understand the problem, and take measures to avoid it (if is possible).
-  if (err.isOperational) {
+const sendErrorProd = (err, req, res) => {
+  // A) API
+  if (req.originalUrl.startsWith('/api')) {
+    // If we are in production environment, we should send as little data as possible. Only the sufficient
+    // to help the client understand the problem, and take measures to avoid it (if is possible).
+    if (err.isOperational) {
+      // If the error is operational, and safe to send more details.
+      res.status(err.statusCode).json({
+        status: 'fail',
+        message: err.message,
+      });
+    } else {
+      // 1) Log the error
+      console.error(`Error: ${err}`);
+
+      // 2) Send the generic message
+      // If the error isn't operational, we can't leak any details
+      res.status(500).json({
+        status: 'fail',
+        message: 'Something went wrong!',
+      });
+    }
+  } else if (err.isOperational) {
+    // B) Website
     // If the error is operational, and safe to send more details.
-    res.status(err.statusCode).json({
-      status: 'fail',
+    res.status(err.statusCode).render('error', {
+      title: 'Error',
       message: err.message,
     });
   } else {
@@ -31,8 +57,8 @@ const sendErrorProd = (err, res) => {
 
     // 2) Send the generic message
     // If the error isn't operational, we can't leak any details
-    res.status(500).json({
-      status: 'fail',
+    res.status(500).render('error', {
+      title: 'fail',
       message: 'Something went wrong!',
     });
   }
@@ -83,9 +109,11 @@ module.exports = (err, req, res, next) => {
   // Verifying the current environment, to decide between development errors and
   // production errors.
   if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
+    sendErrorDev(err, req, res);
   } else if (process.env.NODE_ENV === 'production') {
     let error = { ...err };
+    error.message = err.message;
+
     if (error.name === 'CastError') error = handleCastError(error);
     if (error.code === 11000) error = handleDuplicateKeyError(error);
     if (error.errors) error = handleValidationError(error);
@@ -96,6 +124,6 @@ module.exports = (err, req, res, next) => {
       error = handleTokenExpiredError(error);
     }
 
-    sendErrorProd(error, res);
+    sendErrorProd(error, req, res);
   }
 };

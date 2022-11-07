@@ -5,6 +5,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
+// rateLimit is used to restrict the amount of requests a client can send
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
@@ -46,6 +47,7 @@ if (process.env.NODE_ENV === 'development') {
 // and PUT requests. The limit option makes it impossible for clients
 // to send too big JSON files, like what happens in DDOS.
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 
 // Limiting requests from the same client.
@@ -122,7 +124,7 @@ app.use(mongoSanitize());
 // will show it to you and other users. Knowing about this, you insert some
 // malicious JS code in it. This code will be executed whenever someone loads
 // a page that have your username in it. Following this logic, you could add
-// a ton of malicious code in anyplace where you can write anything you want.
+// a ton of malicious code in any place where you can write anything you want.
 // the XSS sanitization will remove dangerous tags or code from the input,
 // avoiding this kind of attack.
 app.use(xss());

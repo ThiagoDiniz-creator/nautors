@@ -8,7 +8,7 @@ const login = async (email, password) => {
     });
 
     if (result.status === 200) {
-      document.cookie = `jwt=${result.data.token}`;
+      // document.cookie = `jwt=${result.data.token}`;
       window.setTimeout(() => location.assign('/'), 1500);
       showAlert('success', 'You are successfully logged in!');
     }
@@ -17,8 +17,6 @@ const login = async (email, password) => {
       showAlert('error', err.message);
   }
 }
-
-
 
 document.querySelector('form.form').addEventListener('submit', async (e) => {
   e.preventDefault();

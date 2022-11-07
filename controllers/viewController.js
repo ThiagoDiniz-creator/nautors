@@ -1,6 +1,9 @@
 // MODULES
 const Tour = require('../models/tourModel');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
+const User = require('../models/userModel');
+const filterObj = require('../utils/filterObj');
 
 exports.getOverview = catchAsync(async (req, res) => {
   // 1) Get data from the collection.
@@ -13,7 +16,7 @@ exports.getOverview = catchAsync(async (req, res) => {
   });
 });
 
-exports.getTour = catchAsync(async (req, res) => {
+exports.getTour = catchAsync(async (req, res, next) => {
   // 1) Get the param
   const { slug } = req.params;
 
@@ -23,11 +26,9 @@ exports.getTour = catchAsync(async (req, res) => {
     populate: { path: 'user' },
   });
 
-  console.log(tour);
-
   // 3) Check if the tour was found
   if (!tour) {
-    res.status(404).json({ status: 'fail', message: 'Page was not found!' });
+    return next(new AppError('Page was not found!', 404));
   }
 
   // 4) Send the page, with the data back.
@@ -40,3 +41,18 @@ exports.getTour = catchAsync(async (req, res) => {
 exports.login = catchAsync(async (req, res) =>
   res.status(200).render('login', { title: 'Log into your account' })
 );
+
+exports.getAccount = catchAsync(async (req, res) => {
+  res.status(200).render('account', { title: 'Account' });
+});
+
+exports.updateUserData = catchAsync(async (req, res, next) => {
+  // 1) Change the different data
+  const newData = filterObj(req.body, ['email', 'name']);
+  // 3) Send the user a new data object, and the success response
+  res.locals.user = await User.findByIdAndUpdate(req.user.id, newData, {
+    new: true,
+    runValidators: true,
+  });
+  res.status(201).render('account', { title: 'Account' });
+});

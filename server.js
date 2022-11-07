@@ -44,8 +44,7 @@ const port = process.env.PORT || 3000;
 // Saving the server to a constant variable.
 const server = app.listen(port, () => {
   console.log(`The server is listening at localhost:${port}`);
-}
-);
+});
 
 // UNHANDLED REJECTION HANDLER
 // These are the async errors that aren't handled in the app.
