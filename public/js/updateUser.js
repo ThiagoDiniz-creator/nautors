@@ -9,9 +9,11 @@ const updateSettings = async (e, type) => {
 
   let data = {};
   if (type === 'email') {
-    const name = document.querySelector('#name').value;
-    const email = document.querySelector('#email').value;
-    data = { name, email };
+    const form = new FormData();
+    form.append('name', document.querySelector('#name').value);
+    form.append('email', document.querySelector('#email').value);
+    form.append('photo', document.getElementById('photo').files[0]);
+    data = form;
   } else if (type === 'password') {
     const passwordCurrent = document.querySelector('#password-current').value;
     const password = document.querySelector('#password').value;

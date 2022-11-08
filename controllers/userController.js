@@ -1,13 +1,56 @@
 // MODULES
-// noinspection JSUnresolvedFunction
-
+const multer = require('multer');
+const sharp = require('sharp');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const filterObj = require('../utils/filterObj');
 const HandlerFactory = require('./handlerFactory');
 
+// Multer storage config
+// noinspection JSUnusedGlobalSymbols
+// const multerStorage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'public/img/users');
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = file.mimetype.split('/')[1];
+//     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
+//   },
+// });
+const multerStorage = multer.memoryStorage();
+// Multer filter config
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image! Please only upload images', 400), false);
+  }
+};
+
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
 // FUNCTIONS
+exports.getSinglePhoto = upload.single('photo');
+
+// This will resize all images, to reduce storage usage and optimize the website performance.
+exports.resizeUserImage = catchAsync(async (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
+    .resize({
+      width: 256,
+      height: 256,
+    })
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/users/${req.file.filename}`);
+  next();
+});
+
 // This will get all the users, with the request sorting, filtering, pagination and fields.
 exports.getAllUsers = HandlerFactory.getAll(User);
 
@@ -41,6 +84,11 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   // 2) Change the different data
   const user = await User.findById(req.user.id);
   const newData = filterObj(req.body, ['email', 'name']);
+
+  if (req.file) {
+    newData.photo = req.file.filename;
+  }
+
   await user.updateOne(newData, {
     new: true,
     runValidators: true,

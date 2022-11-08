@@ -21,7 +21,13 @@ router.patch('/update-my-password', authController.updatePassword);
 
 // user own profile routes
 router.delete('/delete-me', authController.protect, userController.deleteMe);
-router.patch('/update-me', authController.protect, userController.updateMe);
+router.patch(
+  '/update-me',
+  authController.protect,
+  userController.getSinglePhoto,
+  userController.resizeUserImage,
+  userController.updateMe
+);
 router.get('/me', userController.getMe, userController.getOneUser);
 
 // being sure that only admins can change or get info about the users
