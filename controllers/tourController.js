@@ -1,10 +1,76 @@
 // MODULES
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('../models/tourModel');
 const catchAsync = require('../utils/catchAsync');
 const HandlerFactory = require('./handlerFactory');
 const AppError = require('../utils/appError');
 
-// MIDDLEWARE
+const multerStorage = multer.memoryStorage();
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('You can only upload images!', 400), null);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+// FUNCTIONS
+exports.checkTourId = catchAsync(async (req, res, next) => {
+  const tour = await Tour.findById(req.params.id);
+  if (!tour) req.doesExist = false;
+  else req.doesExist = true;
+  next();
+});
+
+exports.getTourPhotos = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+
+exports.resizeImages = catchAsync(async (req, res, next) => {
+  // 1) Verify if the tour exists
+  if (req.doesExist) {
+    // 2)  Verify if there is an image-cover and other photos.
+    if (!req.files.imageCover || !req.files.images) return next();
+
+    const { imageCover, images } = req.files;
+
+    // 3) Process image cover
+    const imageCoverFilename = `tour-${imageCover[0].fieldname}-${
+      req.params.id
+    }-${Date.now()}.jpeg`;
+
+    await sharp(imageCover[0].buffer)
+      .resize(2000, 1333)
+      .jpeg({ quality: 90 })
+      .toFile(`public/img/tours/${imageCoverFilename}`);
+
+    req.body.imageCover = imageCoverFilename;
+    req.body.images = [];
+
+    // 4) Process images.
+    await images.map(({ fieldname, buffer }) => {
+      const imageFilename = `tour-${fieldname}-${
+        req.params.id
+      }-${Date.now()}.jpeg`;
+
+      req.body.images.push(imageFilename);
+      return sharp(buffer)
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${imageFilename}`);
+    });
+  }
+
+  next();
+});
+
+// Get the five cheapest available tours
 exports.bestFiveAndCheapestTours = (req, res, next) => {
   req.query.limit = '5';
   req.query.page = '1';
@@ -14,7 +80,7 @@ exports.bestFiveAndCheapestTours = (req, res, next) => {
   next();
 };
 
-// FUNCTIONS
+// Returns all the visible tours
 exports.getAllTours = HandlerFactory.getAll(Tour);
 
 // Allows the client to find a specific tour.
