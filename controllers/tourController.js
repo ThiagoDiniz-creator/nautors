@@ -6,6 +6,7 @@ const catchAsync = require('../utils/catchAsync');
 const HandlerFactory = require('./handlerFactory');
 const AppError = require('../utils/appError');
 
+// Defining the multer storage config and filter config
 const multerStorage = multer.memoryStorage();
 const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
@@ -15,24 +16,28 @@ const multerFilter = (req, file, cb) => {
   }
 };
 
+// Creating a middleware generator with the defined config
 const upload = multer({
   storage: multerStorage,
   fileFilter: multerFilter,
 });
 
 // FUNCTIONS
+// Middleware that will check if the tour exists, if it doesn't, the images will not be uploaded
 exports.checkTourId = catchAsync(async (req, res, next) => {
   const tour = await Tour.findById(req.params.id);
-  if (!tour) req.doesExist = false;
-  else req.doesExist = true;
+  req.doesExist = tour;
   next();
 });
 
+// Middleware that will receive different images for upload.
 exports.getTourPhotos = upload.fields([
   { name: 'imageCover', maxCount: 1 },
   { name: 'images', maxCount: 3 },
 ]);
 
+// This middleware will resize and convert all images. And also will add their locations
+// to the req.body, so it can be later added to the update query.
 exports.resizeImages = catchAsync(async (req, res, next) => {
   // 1) Verify if the tour exists
   if (req.doesExist) {
