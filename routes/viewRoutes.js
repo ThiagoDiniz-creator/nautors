@@ -3,9 +3,10 @@ const router = require('express').Router();
 
 const viewController = require('../controllers/viewController');
 const authController = require('../controllers/authController');
+const bookingController = require('../controllers/bookingController');
 
 // ROUTES
-router.use(authController.isLoggedIn);
+router.use(bookingController.createBookingCheckout, authController.isLoggedIn);
 
 // Tour overview
 router.get('/', viewController.getOverview);
@@ -25,6 +26,9 @@ router.post(
   authController.protect,
   viewController.updateUserData
 );
+
+// Bookings page
+router.get('/my-tours', authController.protect, viewController.getMyTours);
 
 // EXPORTING THE ROUTER
 module.exports = router;

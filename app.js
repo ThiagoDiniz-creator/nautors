@@ -13,6 +13,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const compression = require('compression');
 
 const errorController = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -51,7 +52,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
-app.use(cors({ origin: '127.0.0.1:8000' }));
+app.use(cors());
 
 // Limiting requests from the same client.
 // the rateLimit package allows us to block a user from trying to send
@@ -80,18 +81,14 @@ const scriptSrcUrls = [
   'https://api.mapbox.com/',
   'https://cdn.jsdelivr.net',
   'https://js.stripe.com/v3/',
-  'http://127.0.0.1:8000',
   'ws: ',
-  'js.stripe.com',
 ];
 const styleSrcUrls = [
   'https://api.mapbox.com/',
   'https://api.tiles.mapbox.com/',
   'https://fonts.googleapis.com/',
   'https://cdn.jsdelivr.net',
-  'http://127.0.0.1:8000',
   'ws: ',
-  'js.stripe.com',
 ];
 const connectSrcUrls = [
   'https://api.mapbox.com/',
@@ -99,16 +96,10 @@ const connectSrcUrls = [
   'https://b.tiles.mapbox.com/',
   'https://events.mapbox.com/',
   'https://cdn.jsdelivr.net',
-  'http://127.0.0.1:8000',
   'ws: ',
-  'js.stripe.com',
 ];
 const defaultSrcUrls = ['https://js.stripe.com/'];
-const fontSrcUrls = [
-  'fonts.googleapis.com',
-  'fonts.gstatic.com',
-  'js.stripe.com',
-];
+const fontSrcUrls = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -190,6 +181,9 @@ app.all('*', (req, res, next) => {
 // all the detected errors. (The errors are detected when they are sent
 // in the next function: next(err)).
 app.use(errorController);
+
+// This middleware is used to compress the responses.
+app.use(compression());
 
 // EXPORTING
 module.exports = app;

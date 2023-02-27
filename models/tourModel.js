@@ -202,7 +202,6 @@ tourSchema.pre(/^find/, function (next) {
 //   if (this.guides) {
 //     const promises = this.guides.map((id) => User.findById(id));
 //     this.guides = await Promise.all(promises);
-//     console.log(this.guides);
 //   }
 
 //   next();
