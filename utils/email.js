@@ -4,9 +4,11 @@ const pug = require('pug');
 const htmlToText = require('html-to-text');
 const Path = require('path');
 
-// This class is going to be used when sending emails.
-// It allows the developer to create custom HTML emails, but also convert them to text, if needeed.
+// O primeiro passo é criar a classe Email.
 module.exports = class Email {
+  // No constructor iremos passar dois parâmetros fundamentais para esse exemplo: O user e a url.
+  // O primeiro parâmetro dará acesso a informações como o email e o nome do cliente. Já o segundo,
+  // permitirá que uma ação seja transmitida para o cliente.
   constructor(user, url) {
     this.to = user.email;
     this.firstName = user.name.split(' ')[0];
@@ -14,6 +16,9 @@ module.exports = class Email {
     this.from = `Thiago Diniz <${process.env.EMAIL_FROM}>`;
   }
 
+  // O Nodemailer precisa de um transport, que é objeto que permitirá o envio de emails mais diretamente.
+  // Para isso, ele recebe dados como host (gmail, outlook, entre outros), porta (para comunicar com o serviço.
+  // E os dados de autenticação, como senha e email/username.
   newTransport() {
     if (process.env.NODE_ENV === 'production') {
       return 1;
@@ -29,15 +34,21 @@ module.exports = class Email {
     });
   }
 
+  // O método send é responsável por permitir o envio de novos emails, onde ele irá receber
+  // quais são é o template e o tópico do email.
   async send(template, subject) {
-    // 1) Render HTML based on a PUG template.
+    // Os templates são todos feitos no PUG, convertidos para HTML.
     template += '.pug';
     const html = pug.renderFile(
       Path.join(__dirname, '/../views/emails', template),
       { firstName: this.firstName, url: this.url, subject }
     );
 
-    // 2) Define the email options.
+    // Após obtermos o template em HTML, temos de configurar as opções de envio do email.
+    // Esse são os dados como remetente, destinatário, tópico, o html do email e o text
+    // dele. No texto estamos usando um pacote chamado htmlToText, que converte o nosso
+    // template para um formato de plain text. O que é necessário já que muitos emails
+    // não conseguem ler o html, e optam pelo texto.
     const mailOptions = {
       from: this.from,
       to: this.to,
@@ -46,8 +57,7 @@ module.exports = class Email {
       text: htmlToText.fromString(html),
     };
 
-    // 3) Create the transport.
-    // 4) Send the email.
+    // A etapa final é criar um transporte, e enviar o email com as opções desejadas.
     await this.newTransport().sendMail(mailOptions);
   }
 

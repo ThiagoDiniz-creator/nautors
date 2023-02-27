@@ -5,6 +5,8 @@ block append head
     link(rel='stylesheet' href='/css/mapbox-gl.css')
     script(src='/js/mapbox-gl.js' defer=true)
     script(src='/js/mapbox.js' defer=true)
+    script(src='https://js.stripe.com/v3/' crossorigin='anonymous')
+    script(src='/js/tour.js' defer=true)
 
 mixin overviewBox(label, text, icon)
     .overview-box__detail
@@ -17,9 +19,9 @@ mixin tourGuides(guides)
     each guide in tour.guides
         .overview-box__detail
             img.overview-box__img(src=`/img/users/${guide.photo}` alt=guide.role)
-            -if (guide.role === 'lead-guide')
+            if (guide.role === 'lead-guide')
                 span.overview-box__label Lead guide
-            -else
+            else
                 span.overview-box__label Tour guide
             span.overview-box__text=guide.name
 
@@ -80,7 +82,10 @@ block content
             .cta__content
                 h2.heading-secondary What are you waiting for?
                 p.cta__text #{tour.duration} days. 1 adventure. Infinite memories. Make it tours today!
-                button.btn.btn--green.span-all-rows Book tour now!
+                if user
+                    button.btn.btn--green.span-all-rows#book-tour(data-tour-id=`${tour.id}`) Book tour now!
+                else
+                    a.btn.btn--green.span-all-rows(href="/login") Login to book tour!
 
 
 

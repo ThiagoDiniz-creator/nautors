@@ -12,6 +12,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 const errorController = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -50,6 +51,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
+app.use(cors({ origin: '127.0.0.1:8000' }));
 
 // Limiting requests from the same client.
 // the rateLimit package allows us to block a user from trying to send
@@ -71,22 +73,25 @@ app.use(limiter);
 // Helmet is a NPM package that automatically adds a big number of headers
 // that will make our connection safer, and will reduce the odds of getting
 // type of http manipulation.
-app.use(helmet());
-
 //Add the following
 // Further HELMET configuration for Security Policy (CSP)
 const scriptSrcUrls = [
   'https://api.tiles.mapbox.com/',
   'https://api.mapbox.com/',
   'https://cdn.jsdelivr.net',
-  'ws:',
+  'https://js.stripe.com/v3/',
+  'http://127.0.0.1:8000',
+  'ws: ',
+  'js.stripe.com',
 ];
 const styleSrcUrls = [
   'https://api.mapbox.com/',
   'https://api.tiles.mapbox.com/',
   'https://fonts.googleapis.com/',
   'https://cdn.jsdelivr.net',
-  'ws:',
+  'http://127.0.0.1:8000',
+  'ws: ',
+  'js.stripe.com',
 ];
 const connectSrcUrls = [
   'https://api.mapbox.com/',
@@ -94,20 +99,29 @@ const connectSrcUrls = [
   'https://b.tiles.mapbox.com/',
   'https://events.mapbox.com/',
   'https://cdn.jsdelivr.net',
-  'ws:',
+  'http://127.0.0.1:8000',
+  'ws: ',
+  'js.stripe.com',
 ];
-const fontSrcUrls = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+const defaultSrcUrls = ['https://js.stripe.com/'];
+const fontSrcUrls = [
+  'fonts.googleapis.com',
+  'fonts.gstatic.com',
+  'js.stripe.com',
+];
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: [],
-      connectSrc: ["'self'", ...connectSrcUrls],
-      scriptSrc: ["'self'", ...scriptSrcUrls],
-      styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
-      workerSrc: ["'self'", 'blob:'],
-      objectSrc: [],
-      imgSrc: ["'self'", 'blob:', 'data:'],
-      fontSrc: ["'self'", ...fontSrcUrls],
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'", ...defaultSrcUrls],
+        connectSrc: ["'self'", ...connectSrcUrls],
+        scriptSrc: ["'self'", ...scriptSrcUrls],
+        styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+        workerSrc: ["'self'", 'blob:'],
+        objectSrc: [],
+        imgSrc: ["'self'", 'blob:', 'data:'],
+        fontSrc: ["'self'", ...fontSrcUrls],
+      },
     },
   })
 );
