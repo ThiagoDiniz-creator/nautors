@@ -1,5 +1,5 @@
 # Nautors Project
-The application has two parts: a frontend for users and a backend that provides a complete CRUD for tours, users, and reviews.
+The application has two parts: a frontend for users and a backend that provides a complete CRUD for tours, users, and reviews. It is also capable of password reset.
 
 The frontend is capable of authentication, showing the tours bought by the user, and allowing users to buy tours. The backend allows different user levels ("users", "guide", "lead-guide", "admin") and has features such as virtual properties, populate, and pipelines. MongoDB is used as the database.
 
